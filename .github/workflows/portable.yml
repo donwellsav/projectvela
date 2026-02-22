@@ -17,13 +17,16 @@ jobs:
 
       - name: Publish
         shell: pwsh
-        run: .\scripts\publish-win.ps1
+        run: .\scripts\publish-win.ps1 -Configuration Portable
 
       - name: Prepare and Zip
         shell: pwsh
         run: |
           # Rename publish directory to ProjectVela so the zip extracts to a folder
           Rename-Item -Path "publish" -NewName "ProjectVela"
+
+          # Create marker file for portable mode
+          New-Item -Path "ProjectVela\.portable" -ItemType File
 
           $zipPath = "ProjectVela-Portable.zip"
           Compress-Archive -Path "ProjectVela" -DestinationPath $zipPath
