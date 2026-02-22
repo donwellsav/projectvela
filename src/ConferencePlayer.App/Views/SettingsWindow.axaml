@@ -1,0 +1,86 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ConferencePlayer.Views.SettingsWindow"
+        Title="Project Vela - Settings"
+        Width="720" Height="640"
+        WindowStartupLocation="CenterOwner">
+
+  <ScrollViewer>
+    <StackPanel Margin="16" Spacing="12">
+
+      <TextBlock Text="Output" FontWeight="Bold" FontSize="16"/>
+
+      <StackPanel Spacing="6">
+        <TextBlock Text="Preferred output screen"/>
+        <ComboBox Items="{Binding AvailableScreens}"
+                  SelectedItem="{Binding PreferredOutputScreenName, Mode=TwoWay}"/>
+      </StackPanel>
+
+      <Separator/>
+
+      <TextBlock Text="Panic Blackout" FontWeight="Bold" FontSize="16"/>
+
+      <CheckBox Content="Mute audio during panic (default ON)"
+                IsChecked="{Binding PanicMutesAudio, Mode=TwoWay}"/>
+      <CheckBox Content="Restore previous mute state when leaving panic"
+                IsChecked="{Binding RestoreAudioAfterPanic, Mode=TwoWay}"/>
+
+      <CheckBox Content="Resume playback automatically when leaving panic (default OFF)"
+                IsChecked="{Binding ResumePlaybackAfterPanic, Mode=TwoWay}"/>
+
+      <Separator/>
+
+      <TextBlock Text="Playlist" FontWeight="Bold" FontSize="16"/>
+
+      <CheckBox Content="Auto-advance to next item when media ends"
+                IsChecked="{Binding AutoAdvancePlaylist, Mode=TwoWay}"/>
+
+      <CheckBox Content="Loop playlist when reaching the end (requires auto-advance)"
+                IsChecked="{Binding LoopPlaylist, Mode=TwoWay}"/>
+      <CheckBox Content="Persist playlist between launches (default ON)"
+                IsChecked="{Binding PersistPlaylist, Mode=TwoWay}"/>
+      <CheckBox Content="Enable Preview window (preload next item paused)"
+                IsChecked="{Binding EnablePreviewWindow, Mode=TwoWay}"/>
+
+      <CheckBox Content="Enable Preview audio monitoring (default OFF)"
+                IsChecked="{Binding PreviewAudioEnabled, Mode=TwoWay}"/>
+
+      <Separator/>
+
+      <TextBlock Text="Folder Watch" FontWeight="Bold" FontSize="16"/>
+
+      <CheckBox Content="Enable folder watch"
+                IsChecked="{Binding WatchFolderEnabled, Mode=TwoWay}"/>
+
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBox Width="520"
+                 Watermark="Folder path (local)"
+                 Text="{Binding WatchedFolderPath, Mode=TwoWay}"/>
+        <Button Content="Browse" Command="{Binding BrowseWatchFolderCommand}"/>
+      </StackPanel>
+
+      <CheckBox Content="Include subfolders"
+                IsChecked="{Binding IncludeSubfolders, Mode=TwoWay}"/>
+
+      <Separator/>
+
+      <TextBlock Text="Filter" FontWeight="Bold" FontSize="16"/>
+
+      <CheckBox Content="Enable extension filter"
+                IsChecked="{Binding FilterEnabled, Mode=TwoWay}"/>
+
+      <TextBlock Text="Allowed extensions (semicolon or comma separated, include dot optional):"/>
+      <TextBox Text="{Binding AllowedExtensionsText, Mode=TwoWay}"
+               AcceptsReturn="True"
+               Height="120"/>
+
+      <Separator/>
+
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button Content="Cancel" Command="{Binding CancelCommand}"/>
+        <Button Content="Save" Command="{Binding SaveCommand}"/>
+      </StackPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+</Window>
