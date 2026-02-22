@@ -69,7 +69,7 @@ public sealed class ControlViewModel : ObservableObject
         _prompts = prompts;
         _display = display;
 
-        try { _previewWindow.Owner = _controlWindow; } catch { /* best-effort */ }
+        // try { _previewWindow.Owner = _controlWindow; } catch { /* best-effort */ }
 
         Playlist = new ObservableCollection<PlaylistItem>();
 

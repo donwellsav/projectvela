@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="ConferencePlayer.Views.PromptDialog"
+        x:CompileBindings="False"
         Title="Playback Error"
         Width="640" Height="320"
         WindowStartupLocation="CenterOwner"

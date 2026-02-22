@@ -1,22 +1,25 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ConferencePlayer.ViewModels"
+        xmlns:core="using:ConferencePlayer.Core"
         x:Class="ConferencePlayer.Views.ControlWindow"
+        x:DataType="vm:ControlViewModel"
         Title="Project Vela - Control"
         Width="980" Height="680"
         WindowStartupLocation="CenterScreen">
 
   <Window.KeyBindings>
-    <KeyBinding Key="Space" Command="{Binding TogglePlayPauseCommand}"/>
-    <KeyBinding Key="Enter" Command="{Binding PlaySelectedCommand}"/>
-    <KeyBinding Key="Delete" Command="{Binding RemoveSelectedCommand}"/>
-    <KeyBinding Key="F" Command="{Binding FrameStepCommand}"/>
-    <KeyBinding Key="F12" Command="{Binding PanicCommand}"/>
+    <KeyBinding Gesture="Space" Command="{Binding TogglePlayPauseCommand}"/>
+    <KeyBinding Gesture="Enter" Command="{Binding PlaySelectedCommand}"/>
+    <KeyBinding Gesture="Delete" Command="{Binding RemoveSelectedCommand}"/>
+    <KeyBinding Gesture="F" Command="{Binding FrameStepCommand}"/>
+    <KeyBinding Gesture="F12" Command="{Binding PanicCommand}"/>
 
-    <KeyBinding Key="O" Modifiers="Control" Command="{Binding AddFilesCommand}"/>
-    <KeyBinding Key="O" Modifiers="Control,Shift" Command="{Binding AddFolderCommand}"/>
+    <KeyBinding Gesture="Ctrl+O" Command="{Binding AddFilesCommand}"/>
+    <KeyBinding Gesture="Ctrl+Shift+O" Command="{Binding AddFolderCommand}"/>
 
-    <KeyBinding Key="Left" Modifiers="Control" Command="{Binding PrevCommand}"/>
-    <KeyBinding Key="Right" Modifiers="Control" Command="{Binding NextCommand}"/>
+    <KeyBinding Gesture="Ctrl+Left" Command="{Binding PrevCommand}"/>
+    <KeyBinding Gesture="Ctrl+Right" Command="{Binding NextCommand}"/>
   </Window.KeyBindings>
 
   <DockPanel>
@@ -34,13 +37,13 @@
 
       <Border Grid.Row="0" Grid.Column="0" BorderBrush="#444" BorderThickness="1" CornerRadius="6" Padding="6">
         <ListBox Name="PlaylistList"
-                 Items="{Binding Playlist}"
+                 ItemsSource="{Binding Playlist}"
                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                 AllowDrop="True"
-                 DragOver="Playlist_DragOver"
-                 Drop="Playlist_Drop">
+                 DragDrop.AllowDrop="True"
+                 DragDrop.DragOver="Playlist_DragOver"
+                 DragDrop.Drop="Playlist_Drop">
           <ListBox.ItemTemplate>
-            <DataTemplate>
+            <DataTemplate x:DataType="core:PlaylistItem">
               <TextBlock Text="{Binding DisplayName}" />
             </DataTemplate>
           </ListBox.ItemTemplate>
@@ -67,7 +70,7 @@
           <StackPanel Orientation="Horizontal" Spacing="8">
             <TextBlock Text="Speed" VerticalAlignment="Center"/>
             <ComboBox Width="160"
-                      Items="{Binding AvailableSpeeds}"
+                      ItemsSource="{Binding AvailableSpeeds}"
                       SelectedItem="{Binding SelectedSpeed, Mode=TwoWay}"/>
           </StackPanel>
 

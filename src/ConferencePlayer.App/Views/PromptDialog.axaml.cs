@@ -11,6 +11,12 @@ public partial class PromptDialog : Window
         public string Details { get; set; } = "";
     }
 
+    public PromptDialog()
+    {
+        InitializeComponent();
+        DataContext = new Model();
+    }
+
     public PromptDialog(string message, string? details)
     {
         InitializeComponent();
