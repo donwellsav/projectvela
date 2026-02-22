@@ -2,6 +2,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Platform.Storage;
 using ConferencePlayer.ViewModels;
 using LibVLCSharp.Shared;
 
@@ -21,10 +22,14 @@ public partial class ControlWindow : Window
 
     private void Playlist_DragOver(object? sender, DragEventArgs e)
     {
-        if (e.Data.Contains(DataFormats.Files))
+        if (e.DataTransfer.Contains(DataFormat.File))
+        {
             e.DragEffects = DragDropEffects.Copy;
+        }
         else
+        {
             e.DragEffects = DragDropEffects.None;
+        }
     }
 
     private void Playlist_Drop(object? sender, DragEventArgs e)
@@ -32,10 +37,16 @@ public partial class ControlWindow : Window
         if (DataContext is not ControlViewModel vm)
             return;
 
-        var files = e.Data.GetFileNames();
+        var files = e.DataTransfer.TryGetFiles();
         if (files == null)
             return;
 
-        vm.AddFiles(files.ToList());
+        var paths = files
+            .Where(f => f.Path != null)
+            .Select(f => f.Path.LocalPath)
+            .ToList();
+
+        if (paths.Count > 0)
+            vm.AddFiles(paths);
     }
 }
