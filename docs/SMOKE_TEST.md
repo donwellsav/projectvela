@@ -6,7 +6,7 @@ Run this after every PR merge and before every release.
 
 1. Launch the app.
 2. Confirm you see:
-   - Control window (operator UI)
+   - Control window (operator UI) with embedded Preview area
    - Output window (black)
 
 
@@ -55,13 +55,13 @@ Run this after every PR merge and before every release.
 
 
 
-## Preview window (cue next OR cue selected)
+## Preview (cue next OR cue selected)
 
-1. Ensure the Preview window is visible (Settings -> "Enable Preview window" or click "Show/Hide Preview Window").
+1. Ensure "Enable Preview" is ON in Settings.
 2. Add at least 2 playable files to the playlist.
 3. Select the first item and press **Enter** to play.
 4. Confirm:
-   - Preview window shows the **next** item by default (paused on first frame)
+   - Preview area (in Control window) shows the **next** item by default (paused on first frame)
    - Preview is silent by default
 5. Optional: in Settings, enable "Preview audio monitoring" and confirm preview audio is audible.
 6. Click **Cue Preview** and confirm it refreshes the preview.

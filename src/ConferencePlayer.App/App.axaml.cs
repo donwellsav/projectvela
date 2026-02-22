@@ -67,7 +67,6 @@ public partial class App : Application
             // Windows
             var output = new OutputWindow();
             var control = new ControlWindow();
-            var preview = new PreviewWindow();
 
             desktop.MainWindow = control;
 
@@ -84,7 +83,6 @@ public partial class App : Application
             var vm = new ControlViewModel(
                 controlWindow: control,
                 outputWindow: output,
-                previewWindow: preview,
                 logger: _logger,
                 settings: settings,
                 settingsStore: settingsStore,
@@ -100,8 +98,6 @@ public partial class App : Application
 
             // Show windows
             output.Show();
-            if (settings.EnablePreviewWindow)
-                preview.Show();
             control.Show();
 
             // Ensure cleanup

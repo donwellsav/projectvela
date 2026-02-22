@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:ConferencePlayer.ViewModels"
         xmlns:core="using:ConferencePlayer.Core"
+        xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
         x:Class="ConferencePlayer.Views.ControlWindow"
         x:DataType="vm:ControlViewModel"
         Title="Project Vela - Control"
@@ -64,7 +65,11 @@
           </StackPanel>
 
           <Button Content="Cue Preview" Command="{Binding CueNextPreviewCommand}"/>
-          <Button Content="Show/Hide Preview Window" Command="{Binding TogglePreviewWindowCommand}"/>
+
+          <Border Background="Black" CornerRadius="4" Height="150" Margin="0,4">
+            <vlc:VideoView Name="PreviewVideoView" />
+          </Border>
+
           <TextBlock Text="{Binding PreviewStatusText}" Opacity="0.75" TextWrapping="Wrap"/>
 
           <StackPanel Orientation="Horizontal" Spacing="8">

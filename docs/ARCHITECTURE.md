@@ -12,7 +12,7 @@ Core requirements implemented in the starter:
 - Offline playback (local files)
 - Playlist (with persistence, default ON)
 - Auto-advance (stop at end by default; loop optional)
-- Preview window (preload/cue next item paused on first frame; muted by default)
+- Preview (embedded in Control window, preloads next item paused on first frame; muted by default)
 - Hotkeys (only when app focused)
 - Folder watching (including subfolders) that auto-adds new files
 - Panic Blackout (black video output + optional audio mute)
@@ -36,9 +36,9 @@ ConferencePlayer.Playback   (IPlaybackEngine + LibVLCSharp implementation)
 
 - Two playback engine instances are used:
   - Output playback engine -> Output window video surface
-  - Preview playback engine -> Preview window (silent, paused on first frame)
+  - Preview playback engine -> Control window embedded preview (silent, paused on first frame)
 - Output window hosts the main video surface (LibVLCSharp.Avalonia `VideoView`).
-- Preview window hosts a separate video surface used only for cueing the next item.
+- Control window hosts a separate video surface used only for cueing the next item.
 - Operator UI issues commands (play/pause/seek/speed/frame-step, etc.).
 
 ## Multi-monitor behavior

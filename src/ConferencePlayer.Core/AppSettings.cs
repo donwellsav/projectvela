@@ -14,9 +14,7 @@ public sealed class AppSettings
     public bool IncludeSubfolders { get; set; } = true;
 
     // NOTE (v1): watched-folder filtering UI is deferred.
-    // We keep the underlying fields for a future release, but default to NO filtering.
-    public bool FilterEnabled { get; set; } = false;
-
+    // We keep the underlying fields for a future release.
     /// <summary>
     /// Case-insensitive extensions, including the leading dot (e.g. ".mp4").
     /// </summary>
@@ -85,9 +83,6 @@ public sealed class AppSettings
 
     public void EnsureDefaults()
     {
-        if (AllowedExtensions.Count == 0)
-        {
-            FilterEnabled = false; // if no extensions are defined, disable filter to avoid blocking everything
-        }
+        // Defaults logic if needed.
     }
 }

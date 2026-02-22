@@ -18,7 +18,6 @@ public sealed class ControlViewModel : ObservableObject
 {
     private readonly ControlWindow _controlWindow;
     private readonly OutputWindow _outputWindow;
-    private readonly PreviewWindow _previewWindow;
 
 
     private readonly AppLogger _logger;
@@ -43,7 +42,6 @@ public sealed class ControlViewModel : ObservableObject
     public ControlViewModel(
         ControlWindow controlWindow,
         OutputWindow outputWindow,
-        PreviewWindow previewWindow,
         AppLogger logger,
         AppSettings settings,
         SettingsStore settingsStore,
@@ -57,7 +55,6 @@ public sealed class ControlViewModel : ObservableObject
     {
         _controlWindow = controlWindow;
         _outputWindow = outputWindow;
-        _previewWindow = previewWindow;
         _logger = logger;
         _settings = settings;
         _settingsStore = settingsStore;
@@ -68,8 +65,6 @@ public sealed class ControlViewModel : ObservableObject
         _fileDialogs = fileDialogs;
         _prompts = prompts;
         _display = display;
-
-        // try { _previewWindow.Owner = _controlWindow; } catch { /* best-effort */ }
 
         Playlist = new ObservableCollection<PlaylistItem>();
 
@@ -93,7 +88,6 @@ public sealed class ControlViewModel : ObservableObject
         OpenSettingsCommand = new RelayCommand(OpenSettings);
         OpenLogsFolderCommand = new RelayCommand(OpenLogsFolder);
         CueNextPreviewCommand = new RelayCommand(CueNextPreview);
-        TogglePreviewWindowCommand = new RelayCommand(TogglePreviewWindow);
 
         // Playback events
         _playback.StateChanged += (_, s) => Dispatcher.UIThread.Post(() =>
@@ -131,10 +125,9 @@ public sealed class ControlViewModel : ObservableObject
 
         // Initial wiring
         _outputWindow.AttachMediaPlayer(_playback.MediaPlayer);
-        _previewWindow.AttachMediaPlayer(_previewPlayback.MediaPlayer);
+        _controlWindow.AttachPreviewPlayer(_previewPlayback.MediaPlayer);
         // Preview is silent by default; audio monitoring can be enabled in Settings.
         _previewPlayback.SetMute(!_settings.PreviewAudioEnabled);
-        _previewWindow.SetBlackout(true);
 
         // Apply monitor placement once screens are available.
         _controlWindow.Opened += (_, __) => ApplyMultiMonitorRules();
@@ -216,7 +209,6 @@ public sealed class ControlViewModel : ObservableObject
     public RelayCommand OpenSettingsCommand { get; }
     public RelayCommand OpenLogsFolderCommand { get; }
     public RelayCommand CueNextPreviewCommand { get; }
-    public RelayCommand TogglePreviewWindowCommand { get; }
 
     public void AddFiles(IEnumerable<string> paths, bool saveAfter = true)
     {
@@ -445,14 +437,6 @@ public sealed class ControlViewModel : ObservableObject
         _playback.NextFrame();
     }
 
-    private void TogglePreviewWindow()
-    {
-        if (_previewWindow.IsVisible)
-            _previewWindow.Hide();
-        else
-            _previewWindow.Show();
-    }
-
     private PlaylistItem? GetNextItemForPreview()
     {
         if (Playlist.Count == 0)
@@ -488,7 +472,6 @@ public sealed class ControlViewModel : ObservableObject
         if (next == null)
         {
             PreviewStatusText = "Preview: (none)";
-            _previewWindow.SetBlackout(true);
             _previewPlayback.Stop();
             return;
         }
@@ -497,7 +480,6 @@ public sealed class ControlViewModel : ObservableObject
         {
             _previewPlayback.SetMute(!_settings.PreviewAudioEnabled);
             _previewPlayback.Load(next.FilePath, autoPlay: false);
-            _previewWindow.SetBlackout(false);
 
             var mode = _settings.PreviewCuesSelectedItem ? "Selected" : "Next";
             PreviewStatusText = $"Preview ({mode}): {next.DisplayName}";
@@ -506,7 +488,6 @@ public sealed class ControlViewModel : ObservableObject
         {
             _logger.Error("CueNextPreview failed", ex);
             PreviewStatusText = "Preview: (error)";
-            _previewWindow.SetBlackout(true);
         }
     }
 
@@ -555,7 +536,6 @@ public sealed class ControlViewModel : ObservableObject
             fileDialogs: _fileDialogs,
             display: _display,
             outputWindow: _outputWindow,
-            previewWindow: _previewWindow,
             folderWatch: _folderWatch);
 
         var win = new SettingsWindow { DataContext = vm };

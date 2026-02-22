@@ -45,7 +45,7 @@ Two-window model:
 
 ### R3. Preview / Cueing
 
-- R3.1 Dedicated **Preview window** for cueing.
+- R3.1 Embedded **Preview** (in Control window) for cueing.
 - R3.2 Preview preloads the next item **paused on the first frame**.
 - R3.2a Cue mode (toggle in Settings):
   - Default: cue the **next** playlist item.

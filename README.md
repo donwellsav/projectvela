@@ -14,7 +14,7 @@ PDFs:
   - **Control window** (operator UI)
   - **Output window** (video output, black when idle/panic/error)
 - Playlist (drag/drop + file picker) + persistence (default ON)
-- Preview window (preloads next item paused on first frame)
+- Preview (embedded in Control window, preloads next item paused on first frame)
 - Hotkeys (active only when app focused)
 - Playback speed + frame step (forward)
 - Folder watch (includes subfolders) -> auto-add files
