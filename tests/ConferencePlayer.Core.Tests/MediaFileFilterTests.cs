@@ -1,6 +1,6 @@
-using Xunit;
-using ConferencePlayer.Core;
 using System.Collections.Generic;
+using ConferencePlayer.Core;
+using Xunit;
 
 namespace ConferencePlayer.Core.Tests;
 

@@ -29,10 +29,15 @@ public sealed class MediaFileFilter
         if (string.IsNullOrWhiteSpace(filePath))
             return false;
 
-        var ext = Path.GetExtension(filePath);
-        if (string.IsNullOrWhiteSpace(ext))
+        // ⚡ Bolt: Use Span-based check to avoid allocating strings for every file extension.
+        // This significantly reduces GC pressure when scanning large folders.
+        ReadOnlySpan<char> pathSpan = filePath.AsSpan();
+        ReadOnlySpan<char> extSpan = Path.GetExtension(pathSpan);
+
+        if (extSpan.IsEmpty || extSpan.IsWhiteSpace())
             return false;
 
-        return _allowed.Contains(ext);
+        // Use AlternateLookup to check existence without allocating a string.
+        return _allowed.GetAlternateLookup<ReadOnlySpan<char>>().Contains(extSpan);
     }
 }
