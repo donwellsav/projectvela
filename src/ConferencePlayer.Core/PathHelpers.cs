@@ -5,7 +5,17 @@ namespace ConferencePlayer.Core;
 
 public static class PathHelpers
 {
-    public static bool IsPortable => File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".portable"));
+    public static bool IsPortable
+    {
+        get
+        {
+#if PORTABLE
+            return true;
+#else
+            return File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".portable"));
+#endif
+        }
+    }
 
     public static string GetAppDataRoot()
     {

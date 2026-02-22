@@ -1,7 +1,10 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Avalonia;
+#if !PORTABLE
 using Velopack;
+#endif
 using ConferencePlayer.Core;
 
 namespace ConferencePlayer;
@@ -13,12 +16,14 @@ internal static class Program
     {
         try
         {
+#if !PORTABLE
             // Only run Velopack if NOT in portable mode.
             if (!PathHelpers.IsPortable)
             {
                 // Velopack must run as early as possible so it can handle install/update hooks.
                 VelopackApp.Build().Run();
             }
+#endif
 
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
@@ -27,6 +32,10 @@ internal static class Program
         {
             var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_error.log");
             File.WriteAllText(logPath, ex.ToString());
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                NativeMethods.MessageBox(IntPtr.Zero, "Fatal startup error: " + ex.ToString(), "Project Vela Error", 0x10);
+            }
             throw;
         }
     }
@@ -35,4 +44,10 @@ internal static class Program
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .LogToTrace();
+
+    private static class NativeMethods
+    {
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int MessageBox(IntPtr hWnd, String text, String caption, uint type);
+    }
 }

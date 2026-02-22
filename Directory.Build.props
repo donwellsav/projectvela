@@ -6,4 +6,9 @@
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
+
+  <!-- Define PORTABLE constant for Portable configuration -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Portable'">
+    <DefineConstants>$(DefineConstants);PORTABLE</DefineConstants>
+  </PropertyGroup>
 </Project>
