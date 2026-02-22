@@ -4,13 +4,14 @@
         x:Class="ConferencePlayer.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="Project Vela - Settings"
-        Width="720" Height="640"
+        Width="800" Height="700"
+        FontSize="16"
         WindowStartupLocation="CenterOwner">
 
   <ScrollViewer>
     <StackPanel Margin="16" Spacing="12">
 
-      <TextBlock Text="Output" FontWeight="Bold" FontSize="16"/>
+      <TextBlock Text="Output" FontWeight="Bold" FontSize="24"/>
 
       <StackPanel Spacing="6">
         <TextBlock Text="Preferred output screen"/>
@@ -20,7 +21,7 @@
 
       <Separator/>
 
-      <TextBlock Text="Panic Blackout" FontWeight="Bold" FontSize="16"/>
+      <TextBlock Text="Panic Blackout" FontWeight="Bold" FontSize="24"/>
 
       <CheckBox Content="Mute audio during panic (default ON)"
                 IsChecked="{Binding PanicMutesAudio, Mode=TwoWay}"/>
@@ -32,7 +33,7 @@
 
       <Separator/>
 
-      <TextBlock Text="Playlist" FontWeight="Bold" FontSize="16"/>
+      <TextBlock Text="Playlist" FontWeight="Bold" FontSize="24"/>
 
       <CheckBox Content="Auto-advance to next item when media ends"
                 IsChecked="{Binding AutoAdvancePlaylist, Mode=TwoWay}"/>
@@ -52,7 +53,7 @@
 
       <Separator/>
 
-      <TextBlock Text="Folder Watch" FontWeight="Bold" FontSize="16"/>
+      <TextBlock Text="Folder Watch" FontWeight="Bold" FontSize="24"/>
 
       <CheckBox Content="Enable folder watch"
                 IsChecked="{Binding WatchFolderEnabled, Mode=TwoWay}"/>
@@ -61,7 +62,7 @@
         <TextBox Width="520"
                  Watermark="Folder path (local)"
                  Text="{Binding WatchedFolderPath, Mode=TwoWay}"/>
-        <Button Content="Browse" Command="{Binding BrowseWatchFolderCommand}"/>
+        <Button Content="Browse" Command="{Binding BrowseWatchFolderCommand}" Height="40"/>
       </StackPanel>
 
       <CheckBox Content="Include subfolders"
@@ -70,8 +71,8 @@
       <Separator/>
 
       <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-        <Button Content="Cancel" Command="{Binding CancelCommand}"/>
-        <Button Content="Save" Command="{Binding SaveCommand}"/>
+        <Button Content="Cancel" Command="{Binding CancelCommand}" Height="40" Width="100"/>
+        <Button Content="Save" Command="{Binding SaveCommand}" Height="40" Width="100"/>
       </StackPanel>
 
       <TextBlock Text="{Binding AppVersion}"
