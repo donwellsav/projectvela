@@ -40,3 +40,14 @@ If you do not want auto-update:
 ## Code signing (recommended for real users)
 
 See Velopack docs for signing support.
+
+## Release via GitHub Actions
+
+This repository includes a workflow to build releases automatically.
+
+1. Go to the **Actions** tab on GitHub.
+2. Select **Release (Velopack)** from the sidebar.
+3. Click **Run workflow**.
+4. Enter the version (e.g., `1.0.0`) and click **Run workflow**.
+5. Once the run completes, click on the run to view details.
+6. Under **Artifacts**, download `velopack-release`.
