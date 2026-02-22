@@ -1,6 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ConferencePlayer.ViewModels"
         x:Class="ConferencePlayer.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
         Title="Project Vela - Settings"
         Width="720" Height="640"
         WindowStartupLocation="CenterOwner">
@@ -12,7 +14,7 @@
 
       <StackPanel Spacing="6">
         <TextBlock Text="Preferred output screen"/>
-        <ComboBox Items="{Binding AvailableScreens}"
+        <ComboBox ItemsSource="{Binding AvailableScreens}"
                   SelectedItem="{Binding PreferredOutputScreenName, Mode=TwoWay}"/>
       </StackPanel>
 

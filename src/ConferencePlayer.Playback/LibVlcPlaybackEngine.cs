@@ -33,7 +33,7 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
         // (We also call it from App startup; calling multiple times is safe.)
         try
         {
-            Core.Initialize();
+            LibVLCSharp.Shared.Core.Initialize();
         }
         catch (Exception ex)
         {
