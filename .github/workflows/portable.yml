@@ -22,13 +22,17 @@ jobs:
       - name: Prepare and Zip
         shell: pwsh
         run: |
+          # Get version from csproj
+          $version = (Select-Xml -Path "src/ConferencePlayer.App/ConferencePlayer.App.csproj" -XPath "//Version").Node.InnerText
+          Write-Host "Detected version: $version"
+
           # Rename publish directory to ProjectVela so the zip extracts to a folder
           Rename-Item -Path "publish" -NewName "ProjectVela"
 
           # Create marker file for portable mode
           New-Item -Path "ProjectVela\.portable" -ItemType File
 
-          $zipPath = "ProjectVela-Portable.zip"
+          $zipPath = "ProjectVela-Portable-v$version.zip"
           Compress-Archive -Path "ProjectVela" -DestinationPath $zipPath
           Write-Host "Created $zipPath"
 
@@ -36,4 +40,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ProjectVela-Portable
-          path: ProjectVela-Portable.zip
+          path: ProjectVela-Portable-v*.zip

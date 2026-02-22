@@ -123,6 +123,8 @@ public sealed class SettingsViewModel : ObservableObject
         set { _settings.ResumePlaybackAfterPanic = value; Raise(); }
     }
 
+    public string AppVersion => $"Project Vela v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)}";
+
     public string PreferredOutputScreenName
     {
         get => _settings.PreferredOutputScreenName;

@@ -10,6 +10,9 @@ public partial class OutputWindow : Window
     {
         InitializeComponent();
         SetBlackout(true);
+
+        var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        Title = $"Project Vela - Output v{v?.ToString(3)}";
     }
 
     public void AttachMediaPlayer(MediaPlayer mediaPlayer)
