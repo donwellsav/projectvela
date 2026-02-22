@@ -1,0 +1,36 @@
+name: Portable Release (ZIP)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish
+        shell: pwsh
+        run: .\scripts\publish-win.ps1
+
+      - name: Prepare and Zip
+        shell: pwsh
+        run: |
+          # Rename publish directory to ProjectVela so the zip extracts to a folder
+          Rename-Item -Path "publish" -NewName "ProjectVela"
+
+          $zipPath = "ProjectVela-Portable.zip"
+          Compress-Archive -Path "ProjectVela" -DestinationPath $zipPath
+          Write-Host "Created $zipPath"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProjectVela-Portable
+          path: ProjectVela-Portable.zip
