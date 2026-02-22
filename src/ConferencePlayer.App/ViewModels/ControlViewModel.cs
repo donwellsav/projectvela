@@ -11,6 +11,7 @@ using ConferencePlayer.Playback;
 using ConferencePlayer.Services;
 using ConferencePlayer.Utils;
 using ConferencePlayer.Views;
+using LibVLCSharp.Shared;
 
 namespace ConferencePlayer.ViewModels;
 
@@ -18,7 +19,6 @@ public sealed class ControlViewModel : ObservableObject
 {
     private readonly ControlWindow _controlWindow;
     private readonly OutputWindow _outputWindow;
-
 
     private readonly AppLogger _logger;
     private readonly AppSettings _settings;
@@ -31,8 +31,9 @@ public sealed class ControlViewModel : ObservableObject
     private readonly IFileDialogService _fileDialogs;
     private readonly IUserPromptService _prompts;
     private readonly DisplayService _display;
+    private readonly LibVLC _libVLC;
 
-    private PlaylistItem? _selectedItem;
+    private PlaylistItemViewModel? _selectedItem;
     private string _statusText = "Idle";
     private string _previewStatusText = "Preview: (none)";
     private bool _isPanic;
@@ -51,10 +52,12 @@ public sealed class ControlViewModel : ObservableObject
         FolderWatchService folderWatch,
         IFileDialogService fileDialogs,
         IUserPromptService prompts,
-        DisplayService display)
+        DisplayService display,
+        LibVLC libVLC)
     {
         _controlWindow = controlWindow;
         _outputWindow = outputWindow;
+        _libVLC = libVLC;
         _logger = logger;
         _settings = settings;
         _settingsStore = settingsStore;
@@ -66,7 +69,7 @@ public sealed class ControlViewModel : ObservableObject
         _prompts = prompts;
         _display = display;
 
-        Playlist = new ObservableCollection<PlaylistItem>();
+        Playlist = new ObservableCollection<PlaylistItemViewModel>();
 
         AvailableSpeeds = new ObservableCollection<float>(new[]
         {
@@ -93,11 +96,18 @@ public sealed class ControlViewModel : ObservableObject
         _playback.StateChanged += (_, s) => Dispatcher.UIThread.Post(() =>
         {
             StatusText = $"State: {s}";
+            if (SelectedItem != null)
+            {
+                SelectedItem.Status = s == PlaybackState.Playing ? "Playing" :
+                                      s == PlaybackState.Paused ? "Paused" :
+                                      s == PlaybackState.Stopped ? "Stopped" : "";
+            }
             Raise(nameof(CanRemoveSelected));
         });
 
         _playback.EndReached += (_, __) => Dispatcher.UIThread.Post(async () =>
         {
+            if (SelectedItem != null) SelectedItem.Status = "Finished";
             _logger.Info("EndReached -> auto-advance check");
             if (_settings.AutoAdvancePlaylist)
             {
@@ -108,6 +118,7 @@ public sealed class ControlViewModel : ObservableObject
 
         _playback.PlaybackError += (_, msg) => Dispatcher.UIThread.Post(async () =>
         {
+            if (SelectedItem != null) SelectedItem.Status = "Error";
             await HandlePlaybackErrorAsync(msg);
         });
 
@@ -143,9 +154,9 @@ public sealed class ControlViewModel : ObservableObject
         }
     }
 
-    public ObservableCollection<PlaylistItem> Playlist { get; }
+    public ObservableCollection<PlaylistItemViewModel> Playlist { get; }
 
-    public PlaylistItem? SelectedItem
+    public PlaylistItemViewModel? SelectedItem
     {
         get => _selectedItem;
         set
@@ -234,7 +245,9 @@ public sealed class ControlViewModel : ObservableObject
             if (Playlist.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.FilePath, p)))
                 continue;
 
-            Playlist.Add(new PlaylistItem(p));
+            var newItem = new PlaylistItemViewModel(new PlaylistItem(p));
+            Playlist.Add(newItem);
+            _ = LoadDurationAsync(newItem);
             added++;
         }
 
@@ -251,12 +264,35 @@ public sealed class ControlViewModel : ObservableObject
         _logger.Info($"AddFiles: added={added}");
     }
 
+    private async Task LoadDurationAsync(PlaylistItemViewModel item)
+    {
+        try
+        {
+            // Run on thread pool to avoid blocking UI
+            await Task.Run(() =>
+            {
+                using var media = new Media(_libVLC, item.FilePath);
+                media.Parse(MediaParseOptions.ParseLocal);
+                var ms = media.Duration;
+                if (ms > 0)
+                {
+                    var ts = TimeSpan.FromMilliseconds(ms);
+                    Dispatcher.UIThread.Post(() => item.Duration = ts.ToString(@"mm\:ss"));
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Failed to load duration for {item.FilePath}", ex);
+        }
+    }
+
     private void SavePlaylistIfEnabled()
     {
         if (!_settings.PersistPlaylist)
             return;
 
-        _playlistStore.Save(Playlist, _logger);
+        _playlistStore.Save(Playlist.Select(x => x.Model).ToList(), _logger);
     }
 
     private void LoadPlaylistIfEnabled()
@@ -357,7 +393,7 @@ public sealed class ControlViewModel : ObservableObject
 
             _playback.Load(SelectedItem.FilePath, autoPlay: true);
             SelectedSpeed = SelectedSpeed; // re-apply
-            StatusText = $"Playing: {SelectedItem.DisplayName}";
+            StatusText = $"Playing: {SelectedItem.Name}";
             CueNextPreview();
         }
         catch (Exception ex)
@@ -446,7 +482,7 @@ public sealed class ControlViewModel : ObservableObject
         _playback.NextFrame();
     }
 
-    private PlaylistItem? GetNextItemForPreview()
+    private PlaylistItemViewModel? GetNextItemForPreview()
     {
         if (Playlist.Count == 0)
             return null;
@@ -491,7 +527,7 @@ public sealed class ControlViewModel : ObservableObject
             _previewPlayback.Load(next.FilePath, autoPlay: false);
 
             var mode = _settings.PreviewCuesSelectedItem ? "Selected" : "Next";
-            PreviewStatusText = $"Preview ({mode}): {next.DisplayName}";
+            PreviewStatusText = $"Preview ({mode}): {next.Name}";
         }
         catch (Exception ex)
         {
