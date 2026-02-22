@@ -109,7 +109,8 @@ public partial class App : Application
                 folderWatch: _folderWatch,
                 fileDialogs: fileDialogs,
                 prompts: prompts,
-                display: _displayService);
+                display: _displayService,
+                libVLC: _libVLC!);
 
             control.DataContext = vm;
 
