@@ -80,26 +80,29 @@ public sealed class FolderWatchService : IDisposable
         _seen.Clear();
     }
 
-    public async Task ScanExistingAsync()
+    public Task ScanExistingAsync()
     {
-        try
+        // ⚡ Bolt: Offload file scanning to background thread to prevent UI blocking.
+        // Previously this ran synchronously on the caller thread (UI), causing freezes with large folders.
+        return Task.Run(() =>
         {
-            if (string.IsNullOrWhiteSpace(_settings.WatchedFolderPath) || !Directory.Exists(_settings.WatchedFolderPath))
-                return;
-
-            var option = _settings.IncludeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-            foreach (var file in Directory.EnumerateFiles(_settings.WatchedFolderPath, "*.*", option))
+            try
             {
-                if (_filter.IsAllowed(file))
-                    RaiseDetected(file);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("ScanExistingAsync failed.", ex);
-        }
+                if (string.IsNullOrWhiteSpace(_settings.WatchedFolderPath) || !Directory.Exists(_settings.WatchedFolderPath))
+                    return;
 
-        await Task.CompletedTask;
+                var option = _settings.IncludeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+                foreach (var file in Directory.EnumerateFiles(_settings.WatchedFolderPath, "*.*", option))
+                {
+                    if (_filter.IsAllowed(file))
+                        RaiseDetected(file);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("ScanExistingAsync failed.", ex);
+            }
+        });
     }
 
     private void OnCreatedOrRenamed(object sender, FileSystemEventArgs e)
