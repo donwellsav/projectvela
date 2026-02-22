@@ -1,0 +1,38 @@
+name: Release (Velopack)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "SemVer2 version for the release (e.g., 0.1.0)"
+        required: true
+        type: string
+
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install vpk tool
+        run: dotnet tool install -g vpk
+
+      - name: Publish
+        shell: pwsh
+        run: .\scripts\publish-win.ps1
+
+      - name: Pack (Velopack)
+        shell: pwsh
+        run: .\scripts\pack-velopack.ps1 -Version "${{ inputs.version }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: velopack-release
+          path: Releases/**
