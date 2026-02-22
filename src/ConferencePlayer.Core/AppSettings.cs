@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace ConferencePlayer.Core;
 
@@ -84,5 +86,37 @@ public sealed class AppSettings
     public void EnsureDefaults()
     {
         // Defaults logic if needed.
+    }
+
+    private static readonly string[] DangerousExtensions = new[]
+    {
+        ".exe", ".dll", ".bat", ".cmd", ".ps1", ".vbs", ".js", ".jar", ".msi", ".com", ".scr"
+    };
+
+    /// <summary>
+    /// Validates and sanitizes settings to prevent security issues.
+    /// removes dangerous extensions and resets invalid paths.
+    /// </summary>
+    public void Sanitize()
+    {
+        // Remove dangerous extensions
+        if (AllowedExtensions != null)
+        {
+            AllowedExtensions.RemoveAll(ext =>
+                DangerousExtensions.Any(danger =>
+                    string.Equals(ext, danger, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        // Validate LogsFolderPath
+        if (string.IsNullOrWhiteSpace(LogsFolderPath) || LogsFolderPath.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+        {
+            LogsFolderPath = PathHelpers.GetDefaultLogsFolder();
+        }
+
+        // Validate WatchedFolderPath
+        if (!string.IsNullOrWhiteSpace(WatchedFolderPath) && WatchedFolderPath.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+        {
+            WatchedFolderPath = string.Empty;
+        }
     }
 }
