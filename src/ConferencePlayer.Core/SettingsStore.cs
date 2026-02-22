@@ -22,6 +22,7 @@ public sealed class SettingsStore
                 var json = File.ReadAllText(_settingsFilePath);
                 var settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
                 settings.EnsureDefaults();
+                settings.Sanitize();
 
                 if (string.IsNullOrWhiteSpace(settings.LogsFolderPath))
                 {
