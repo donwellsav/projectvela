@@ -6,6 +6,7 @@ using Avalonia.Markup.Xaml;
 using ConferencePlayer.Core;
 using ConferencePlayer.Playback;
 using ConferencePlayer.Services;
+using LibVLCSharp.Shared;
 using ConferencePlayer.ViewModels;
 using ConferencePlayer.Views;
 
@@ -15,6 +16,7 @@ public partial class App : Application
 {
     private AppLogger? _logger;
     private FolderWatchService? _folderWatch;
+    private LibVLC? _libVLC;
     private IPlaybackEngine? _playback;
     private IPlaybackEngine? _previewPlayback;
     private DisplayService? _displayService;
@@ -61,8 +63,22 @@ public partial class App : Application
             _logger = bootstrapLogger;
 
             // Playback
-            _playback = new LibVlcPlaybackEngine(_logger);
-            _previewPlayback = new LibVlcPlaybackEngine(_logger);
+            try
+            {
+                LibVLCSharp.Shared.Core.Initialize();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Core.Initialize() failed. LibVLC native libs may be missing.", ex);
+            }
+
+            _libVLC = new LibVLC(
+                "--no-video-title-show",
+                "--quiet"
+            );
+
+            _playback = new LibVlcPlaybackEngine(_libVLC, _logger);
+            _previewPlayback = new LibVlcPlaybackEngine(_libVLC, _logger);
 
             // Windows
             var output = new OutputWindow();
@@ -107,6 +123,7 @@ public partial class App : Application
                 try { _folderWatch?.Dispose(); } catch { }
                 try { _playback?.Dispose(); } catch { }
                 try { _previewPlayback?.Dispose(); } catch { }
+                try { _libVLC?.Dispose(); } catch { }
             };
         }
 

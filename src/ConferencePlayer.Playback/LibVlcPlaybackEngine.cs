@@ -8,8 +8,8 @@ namespace ConferencePlayer.Playback;
 public sealed class LibVlcPlaybackEngine : IPlaybackEngine
 {
     private readonly AppLogger _logger;
-
     private readonly LibVLC _libVlc;
+
     public MediaPlayer MediaPlayer { get; }
 
     public PlaybackState State { get; private set; } = PlaybackState.Idle;
@@ -24,29 +24,12 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
 
     private string? _currentPath;
 
-    public LibVlcPlaybackEngine(AppLogger logger)
+    public LibVlcPlaybackEngine(LibVLC libVlc, AppLogger logger)
     {
         _logger = logger;
+        _libVlc = libVlc;
 
-        // LibVLCSharp can auto-initialize when using the native LibVLC NuGet packages,
-        // but calling Core.Initialize() early can reduce the first-play latency.
-        // (We also call it from App startup; calling multiple times is safe.)
-        try
-        {
-            LibVLCSharp.Shared.Core.Initialize();
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("Core.Initialize() failed. LibVLC native libs may be missing.", ex);
-        }
-
-        // Minimal default options; tune later with real files.
-        _libVlc = new LibVLC(
-            "--no-video-title-show",
-            "--quiet"
-        );
-
-        MediaPlayer = new MediaPlayer(_libVlc);
+        MediaPlayer = new MediaPlayer(libVlc);
 
         MediaPlayer.EndReached += (_, __) =>
         {
@@ -192,15 +175,6 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
         try
         {
             MediaPlayer.Dispose();
-        }
-        catch
-        {
-            // ignore
-        }
-
-        try
-        {
-            _libVlc.Dispose();
         }
         catch
         {
