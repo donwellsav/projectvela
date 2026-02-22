@@ -5,8 +5,15 @@ namespace ConferencePlayer.Core;
 
 public static class PathHelpers
 {
+    public static bool IsPortable => File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".portable"));
+
     public static string GetAppDataRoot()
     {
+        if (IsPortable)
+        {
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
+        }
+
         // Per-user, no-admin location.
         var baseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         return Path.Combine(baseDir, "ConferencePlayer");
