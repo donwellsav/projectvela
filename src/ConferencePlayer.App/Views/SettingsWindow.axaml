@@ -74,6 +74,11 @@
         <Button Content="Save" Command="{Binding SaveCommand}"/>
       </StackPanel>
 
+      <TextBlock Text="{Binding AppVersion}"
+                 HorizontalAlignment="Center"
+                 Opacity="0.4"
+                 Margin="0,20,0,0"/>
+
     </StackPanel>
   </ScrollViewer>
 </Window>

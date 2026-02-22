@@ -61,6 +61,7 @@ public partial class App : Application
             var settings = settingsStore.LoadOrCreateDefault(bootstrapLogger);
 
             _logger = bootstrapLogger;
+            _logger.Info($"App started. Version: {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}");
 
             // Playback
             try

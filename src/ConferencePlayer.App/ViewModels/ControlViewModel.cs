@@ -194,6 +194,15 @@ public sealed class ControlViewModel : ObservableObject
     // Convenience computed property (for XAML if you want)
     public bool CanRemoveSelected => SelectedItem != null;
 
+    public string WindowTitle
+    {
+        get
+        {
+            var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            return $"Project Vela - Control v{v?.ToString(3)}";
+        }
+    }
+
     // Commands
     public RelayCommand AddFilesCommand { get; }
     public RelayCommand AddFolderCommand { get; }

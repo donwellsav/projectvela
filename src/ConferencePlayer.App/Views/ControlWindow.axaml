@@ -5,7 +5,7 @@
         xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
         x:Class="ConferencePlayer.Views.ControlWindow"
         x:DataType="vm:ControlViewModel"
-        Title="Project Vela - Control"
+        Title="{Binding WindowTitle}"
         Width="980" Height="680"
         WindowStartupLocation="CenterScreen">
 
