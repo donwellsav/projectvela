@@ -29,10 +29,6 @@ public sealed class MediaFileFilter
         if (string.IsNullOrWhiteSpace(filePath))
             return false;
 
-        // Even if filtering is disabled, we still require a non-empty path.
-        if (!_settings.FilterEnabled)
-            return true;
-
         var ext = Path.GetExtension(filePath);
         if (string.IsNullOrWhiteSpace(ext))
             return false;

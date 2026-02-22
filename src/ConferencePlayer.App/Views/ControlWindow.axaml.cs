@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using ConferencePlayer.ViewModels;
+using LibVLCSharp.Shared;
 
 namespace ConferencePlayer.Views;
 
@@ -11,6 +12,11 @@ public partial class ControlWindow : Window
     public ControlWindow()
     {
         InitializeComponent();
+    }
+
+    public void AttachPreviewPlayer(MediaPlayer player)
+    {
+        PreviewVideoView.MediaPlayer = player;
     }
 
     private void Playlist_DragOver(object? sender, DragEventArgs e)

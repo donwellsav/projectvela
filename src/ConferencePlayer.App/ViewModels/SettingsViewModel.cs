@@ -18,7 +18,6 @@ public sealed class SettingsViewModel : ObservableObject
     private readonly IFileDialogService _fileDialogs;
     private readonly DisplayService _display;
     private readonly OutputWindow _outputWindow;
-    private readonly PreviewWindow _previewWindow;
     private readonly FolderWatchService _folderWatch;
 
     public event EventHandler? RequestClose;
@@ -30,7 +29,6 @@ public sealed class SettingsViewModel : ObservableObject
         IFileDialogService fileDialogs,
         DisplayService display,
         OutputWindow outputWindow,
-        PreviewWindow previewWindow,
         FolderWatchService folderWatch)
     {
         _settings = settings;
@@ -39,7 +37,6 @@ public sealed class SettingsViewModel : ObservableObject
         _fileDialogs = fileDialogs;
         _display = display;
         _outputWindow = outputWindow;
-        _previewWindow = previewWindow;
         _folderWatch = folderWatch;
 
         AvailableScreens = new ObservableCollection<string>();
@@ -174,19 +171,6 @@ public sealed class SettingsViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.Error("Applying output screen settings failed", ex);
-        }
-
-        // Apply preview window visibility immediately.
-        try
-        {
-            if (_settings.EnablePreviewWindow)
-                _previewWindow.Show();
-            else
-                _previewWindow.Hide();
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("Applying preview window settings failed", ex);
         }
 
         RequestClose?.Invoke(this, EventArgs.Empty);
