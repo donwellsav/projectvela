@@ -26,7 +26,7 @@
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)'!='Portable'">
     <PackageReference Include="Velopack" Version="0.0.1298" />
   </ItemGroup>
 

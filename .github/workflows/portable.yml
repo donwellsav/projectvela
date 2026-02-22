@@ -17,7 +17,7 @@ jobs:
 
       - name: Publish
         shell: pwsh
-        run: .\scripts\publish-win.ps1
+        run: .\scripts\publish-win.ps1 -Configuration Portable
 
       - name: Prepare and Zip
         shell: pwsh
