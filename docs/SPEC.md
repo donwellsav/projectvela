@@ -64,6 +64,7 @@ Two-window model:
 - R4.1 Panic hotkey + UI button.
 - R4.2 While panic is active:
   - The *Playback State Machine* enforces output is **black** (via `IOutputController`).
+    - **Note:** This blackout command must be issued *synchronously and before* the pause command to prevent a "frozen frame" flash.
   - Audio is muted by default (toggle in settings).
   - Playback is paused (safety posture).
 - R4.3 Leaving panic:

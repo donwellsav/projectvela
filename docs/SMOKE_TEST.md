@@ -85,7 +85,7 @@ Run this after every PR merge and before every release.
 1. **Standard Panic:**
    - Start playback of a video with audio.
    - Press **F12** (Panic) or click the red "BLACKOUT (F12)" button.
-   - [ ] Output window goes instantly **black**.
+   - [ ] Output window goes instantly **black**. (Verify: No frozen frame or "stuck" image is visible before blackout).
    - [ ] Audio is **muted** (silence).
    - [ ] Playback is **paused** (Status shows 'PANIC', button turns GREEN "RESUME (F12)").
    - [ ] Transport buttons (Play/Pause) work but might exit panic depending on action.
@@ -133,7 +133,7 @@ Run this after every PR merge and before every release.
    - Add a corrupted/unsupported media file (or rename a text file to .mp4).
    - Attempt to play it.
 2. **Verify Response:**
-   - [ ] Output window goes **black** immediately.
+   - [ ] Output window goes **black** immediately. (Verify: No frozen frame or glitch visible).
    - [ ] Playback **pauses/stops**.
    - [ ] A modal dialog appears: "Critical Playback Error" (or similar).
 3. **Recovery:**
