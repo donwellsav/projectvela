@@ -155,9 +155,9 @@ public sealed class ControlViewModel : ObservableObject
         });
 
         // Folder watch events
-        _folderWatch.MediaFileDetected += (_, path) => Dispatcher.UIThread.Post(() =>
+        _folderWatch.MediaFilesDetected += (_, paths) => Dispatcher.UIThread.Post(() =>
         {
-            AddFiles(new[] { path });
+            AddFiles(paths);
         });
 
         // Screen topology changes
@@ -407,7 +407,7 @@ public sealed class ControlViewModel : ObservableObject
             Items = Playlist.Select(x => x.FilePath).ToList(),
             SelectedIndex = SelectedItem != null ? Playlist.IndexOf(SelectedItem) : -1,
             // Get time in seconds. Time is ms.
-            PositionSeconds = _playback.MediaPlayer.Time > 0 ? _playback.MediaPlayer.Time / 1000.0 : 0.0
+            PositionSeconds = _playback.Time > 0 ? _playback.Time / 1000.0 : 0.0
         };
 
         _playlistStore.Save(state, _logger);
@@ -446,15 +446,22 @@ public sealed class ControlViewModel : ObservableObject
         if (!_settings.PersistPlaylist)
             return;
 
-        var state = new PlaylistState
+        try
         {
-            Items = Playlist.Select(x => x.FilePath).ToList(),
-            SelectedIndex = SelectedItem != null ? Playlist.IndexOf(SelectedItem) : -1,
-            // Get time in seconds. Time is ms.
-            PositionSeconds = _playback.MediaPlayer.Time > 0 ? _playback.MediaPlayer.Time / 1000.0 : 0.0
-        };
+            var state = new PlaylistState
+            {
+                Items = Playlist.Select(x => x.FilePath).ToList(),
+                SelectedIndex = SelectedItem != null ? Playlist.IndexOf(SelectedItem) : -1,
+                // Get time in seconds. Time is ms.
+                PositionSeconds = _playback.Time > 0 ? _playback.Time / 1000.0 : 0.0
+            };
 
-        await _playlistStore.SaveAsync(state, _logger);
+            await _playlistStore.SaveAsync(state, _logger);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("SavePlaylistIfEnabled failed", ex);
+        }
     }
 
     private void LoadPlaylistIfEnabled()

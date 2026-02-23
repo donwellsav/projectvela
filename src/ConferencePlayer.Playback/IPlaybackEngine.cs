@@ -9,6 +9,9 @@ public interface IPlaybackEngine : IDisposable
 
     PlaybackState State { get; }
 
+    /// <summary>Current playback time in milliseconds.</summary>
+    long Time { get; }
+
     bool IsMuted { get; }
     float Rate { get; }
 

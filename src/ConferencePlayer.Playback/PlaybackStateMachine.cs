@@ -40,6 +40,8 @@ public sealed class PlaybackStateMachine : IDisposable
 
     public PlaybackState State => _isPanic ? PlaybackState.PanicBlackout : _engine.State;
 
+    public long Time => _engine.Time;
+
     public bool IsPanic => _isPanic;
 
     public bool IsMuted => _engine.IsMuted;

@@ -59,6 +59,7 @@ public class ControlViewModelTests
         _mockMainEngine.Setup(x => x.State).Returns(PlaybackState.Stopped);
         _mockMainEngine.Setup(x => x.IsMuted).Returns(false);
         _mockMainEngine.Setup(x => x.Rate).Returns(1.0f);
+        _mockMainEngine.Setup(x => x.Time).Returns(0);
 
         // Setup Preview Engine defaults
         _mockPreviewEngine.Setup(x => x.State).Returns(PlaybackState.Stopped);

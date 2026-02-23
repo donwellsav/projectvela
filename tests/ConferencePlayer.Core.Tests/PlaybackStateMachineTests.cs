@@ -13,6 +13,8 @@ public class PlaybackStateMachineTests
     {
         public MediaPlayer MediaPlayer => throw new NotImplementedException();
 
+        public long Time => 0;
+
         public PlaybackState State { get; private set; } = PlaybackState.Idle;
 
         public bool IsMuted { get; private set; }
