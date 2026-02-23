@@ -24,11 +24,6 @@ public sealed class SettingsStore
                 var settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
                 settings.Sanitize();
 
-                if (string.IsNullOrWhiteSpace(settings.LogsFolderPath))
-                {
-                    settings.LogsFolderPath = PathHelpers.GetDefaultLogsFolder();
-                }
-
                 return settings;
             }
         }
@@ -42,6 +37,33 @@ public sealed class SettingsStore
             LogsFolderPath = PathHelpers.GetDefaultLogsFolder(),
         };
         Save(defaults, logger);
+        return defaults;
+    }
+
+    public async Task<AppSettings> LoadOrCreateDefaultAsync(AppLogger logger)
+    {
+        try
+        {
+            if (File.Exists(_settingsFilePath))
+            {
+                // Use FileStream with async options for true async I/O
+                await using var stream = new FileStream(_settingsFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+                var settings = await JsonSerializer.DeserializeAsync<AppSettings>(stream) ?? new AppSettings();
+                settings.Sanitize();
+
+                return settings;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.Error($"Failed to load settings, using defaults. File='{_settingsFilePath}'", ex);
+        }
+
+        var defaults = new AppSettings
+        {
+            LogsFolderPath = PathHelpers.GetDefaultLogsFolder(),
+        };
+        await SaveAsync(defaults, logger);
         return defaults;
     }
 
