@@ -7,7 +7,6 @@
 
     <AssemblyName>ProjectVela</AssemblyName>
     <RootNamespace>ConferencePlayer</RootNamespace>
-    <Version>1.0.1</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
 
     <!-- Avalonia -->

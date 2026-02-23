@@ -22,8 +22,8 @@ jobs:
       - name: Prepare and Zip
         shell: pwsh
         run: |
-          # Get version from csproj
-          $version = (Select-Xml -Path "src/ConferencePlayer.App/ConferencePlayer.App.csproj" -XPath "//Version").Node.InnerText
+          # Get version from Directory.Build.props
+          $version = (Select-Xml -Path "Directory.Build.props" -XPath "//Version").Node.InnerText
           Write-Host "Detected version: $version"
 
           # Rename publish directory to ProjectVela so the zip extracts to a folder
