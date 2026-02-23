@@ -25,17 +25,18 @@ public sealed class ControlViewModel : ObservableObject
     private readonly SettingsStore _settingsStore;
     private readonly PlaylistStore _playlistStore;
 
-    private readonly IPlaybackEngine _playback;
+    private readonly PlaybackStateMachine _playback;
     private readonly IPlaybackEngine _previewPlayback;
     private readonly FolderWatchService _folderWatch;
     private readonly IFileDialogService _fileDialogs;
-    private readonly IUserPromptService _prompts;
     private readonly DisplayService _display;
     private readonly LibVLC _libVLC;
 
     private PlaylistItemViewModel? _selectedItem;
     private string _statusText = "Idle";
     private string _previewStatusText = "Preview: (none)";
+
+    // We bind IsPanic to UI, but source of truth is StateMachine
     private bool _isPanic;
 
     private float _selectedSpeed = 1.0f;
@@ -47,11 +48,10 @@ public sealed class ControlViewModel : ObservableObject
         AppSettings settings,
         SettingsStore settingsStore,
         PlaylistStore playlistStore,
-        IPlaybackEngine playback,
+        PlaybackStateMachine playback,
         IPlaybackEngine previewPlayback,
         FolderWatchService folderWatch,
         IFileDialogService fileDialogs,
-        IUserPromptService prompts,
         DisplayService display,
         LibVLC libVLC)
     {
@@ -66,7 +66,6 @@ public sealed class ControlViewModel : ObservableObject
         _previewPlayback = previewPlayback;
         _folderWatch = folderWatch;
         _fileDialogs = fileDialogs;
-        _prompts = prompts;
         _display = display;
 
         Playlist = new ObservableCollection<PlaylistItemViewModel>();
@@ -96,16 +95,20 @@ public sealed class ControlViewModel : ObservableObject
         _playback.StateChanged += (_, s) => Dispatcher.UIThread.Post(() =>
         {
             StatusText = $"State: {s}";
+            IsPanic = _playback.IsPanic;
+
             if (SelectedItem != null)
             {
                 SelectedItem.Status = s == PlaybackState.Playing ? "Playing" :
                                       s == PlaybackState.Paused ? "Paused" :
-                                      s == PlaybackState.Stopped ? "Stopped" : "";
+                                      s == PlaybackState.Stopped ? "Stopped" :
+                                      s == PlaybackState.PanicBlackout ? "PANIC" :
+                                      s == PlaybackState.Error ? "Error" : "";
             }
             Raise(nameof(CanRemoveSelected));
         });
 
-        _playback.EndReached += (_, __) => Dispatcher.UIThread.Post(async () =>
+        _playback.EndReached += (_, __) => Dispatcher.UIThread.Post(() =>
         {
             if (SelectedItem != null) SelectedItem.Status = "Finished";
             _logger.Info("EndReached -> auto-advance check");
@@ -116,10 +119,13 @@ public sealed class ControlViewModel : ObservableObject
             }
         });
 
-        _playback.PlaybackError += (_, msg) => Dispatcher.UIThread.Post(async () =>
+        _playback.SkipRequested += (_, __) => Dispatcher.UIThread.Post(() =>
         {
-            if (SelectedItem != null) SelectedItem.Status = "Error";
-            await HandlePlaybackErrorAsync(msg);
+            _logger.Info("Skip requested (from error recovery)");
+            if (NextInternal())
+                PlaySelected();
+            else
+                Stop();
         });
 
         // Folder watch events
@@ -135,7 +141,9 @@ public sealed class ControlViewModel : ObservableObject
         });
 
         // Initial wiring
+        // Note: PlaybackStateMachine exposes MediaPlayer for view attachment
         _outputWindow.AttachMediaPlayer(_playback.MediaPlayer);
+
         _controlWindow.AttachPreviewPlayer(_previewPlayback.MediaPlayer);
         // Preview is silent by default; audio monitoring can be enabled in Settings.
         _previewPlayback.SetMute(!_settings.PreviewAudioEnabled);
@@ -318,7 +326,6 @@ public sealed class ControlViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.Error("AddFilesAsync failed", ex);
-            await HandlePlaybackErrorAsync(ex.Message);
         }
     }
 
@@ -345,7 +352,6 @@ public sealed class ControlViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.Error("AddFolderAsync failed", ex);
-            await HandlePlaybackErrorAsync(ex.Message);
         }
     }
 
@@ -386,21 +392,14 @@ public sealed class ControlViewModel : ObservableObject
         if (SelectedItem == null)
             return;
 
-        try
-        {
-            IsPanic = false;
-            _outputWindow.SetBlackout(false);
+        // Exceptions handled inside StateMachine.Load -> OnEngineError
+        _playback.Load(SelectedItem.FilePath, autoPlay: true);
 
-            _playback.Load(SelectedItem.FilePath, autoPlay: true);
-            SelectedSpeed = SelectedSpeed; // re-apply
-            StatusText = $"Playing: {SelectedItem.Name}";
-            CueNextPreview();
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("PlaySelected failed", ex);
-            _ = HandlePlaybackErrorAsync(ex.Message);
-        }
+        // Re-apply speed preference
+        _playback.SetRate(SelectedSpeed);
+
+        StatusText = $"Playing: {SelectedItem.Name}";
+        CueNextPreview();
     }
 
     private void TogglePlayPause()
@@ -418,8 +417,6 @@ public sealed class ControlViewModel : ObservableObject
 
     private void Stop()
     {
-        IsPanic = false;
-        _outputWindow.SetBlackout(true);
         _playback.Stop();
         StatusText = "Stopped";
     }
@@ -477,8 +474,6 @@ public sealed class ControlViewModel : ObservableObject
 
     private void FrameStep()
     {
-        // Frame stepping usually expects paused playback.
-        _playback.Pause();
         _playback.NextFrame();
     }
 
@@ -536,40 +531,9 @@ public sealed class ControlViewModel : ObservableObject
         }
     }
 
-    private bool _savedMuteBeforePanic;
-    private bool _wasPlayingBeforePanic;
-
     private void TogglePanic()
     {
-        IsPanic = !IsPanic;
-
-        if (IsPanic)
-        {
-            _logger.Warn("PANIC ON");
-            _savedMuteBeforePanic = _playback.IsMuted;
-            _wasPlayingBeforePanic = _playback.State == PlaybackState.Playing;
-
-            // Safety posture: pause playback while output is black.
-            _playback.Pause();
-
-            _outputWindow.SetBlackout(true);
-
-            if (_settings.PanicMutesAudio)
-                _playback.SetMute(true);
-        }
-        else
-        {
-            _logger.Warn("PANIC OFF");
-
-            // Exit blackout first. Default behavior is to remain paused until operator hits Play.
-            _outputWindow.SetBlackout(false);
-
-            if (_settings.RestoreAudioAfterPanic)
-                _playback.SetMute(_savedMuteBeforePanic);
-
-            if (_settings.ResumePlaybackAfterPanic && _wasPlayingBeforePanic)
-                _playback.Play();
-        }
+        _playback.TogglePanic();
     }
 
     private void OpenSettings()
@@ -636,37 +600,6 @@ public sealed class ControlViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.Error("OpenLogsFolder failed", ex);
-        }
-    }
-
-    private async Task HandlePlaybackErrorAsync(string message)
-    {
-        _logger.Warn($"Playback error: {message}");
-
-        // Output goes black and stays black until operator chooses.
-        _outputWindow.SetBlackout(true);
-
-        var choice = await _prompts.ShowPlaybackErrorAsync(
-            message: message,
-            details: $"Log file: {_logger.LogFilePath}");
-
-        _logger.Info($"Operator choice after error: {choice}");
-
-        switch (choice)
-        {
-            case UserChoice.Retry:
-                PlaySelected();
-                break;
-            case UserChoice.Skip:
-                if (NextInternal())
-                    PlaySelected();
-                else
-                    Stop();
-                break;
-            case UserChoice.Stop:
-            default:
-                Stop();
-                break;
         }
     }
 

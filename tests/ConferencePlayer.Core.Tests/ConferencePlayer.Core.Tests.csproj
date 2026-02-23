@@ -14,5 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ConferencePlayer.Core\ConferencePlayer.Core.csproj" />
+    <ProjectReference Include="..\..\src\ConferencePlayer.Playback\ConferencePlayer.Playback.csproj" />
   </ItemGroup>
 </Project>

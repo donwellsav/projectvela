@@ -18,6 +18,7 @@ public partial class App : Application
     private FolderWatchService? _folderWatch;
     private LibVLC? _libVLC;
     private IPlaybackEngine? _playback;
+    private PlaybackStateMachine? _stateMachine;
     private IPlaybackEngine? _previewPlayback;
     private DisplayService? _displayService;
 
@@ -90,12 +91,19 @@ public partial class App : Application
             // Services that require a window
             var fileDialogs = new AvaloniaFileDialogService(control);
             var prompts = new AvaloniaUserPromptService(control);
+            var outputController = new OutputController(output);
 
             _folderWatch = new FolderWatchService(settings, _logger);
 
             _displayService = new DisplayService(control);
             var playlistStore = new PlaylistStore(PathHelpers.GetDefaultPlaylistFile());
 
+            _stateMachine = new PlaybackStateMachine(
+                engine: _playback!,
+                output: outputController,
+                prompts: prompts,
+                logger: _logger,
+                settings: settings);
 
             var vm = new ControlViewModel(
                 controlWindow: control,
@@ -104,11 +112,10 @@ public partial class App : Application
                 settings: settings,
                 settingsStore: settingsStore,
                 playlistStore: playlistStore,
-                playback: _playback,
-                previewPlayback: _previewPlayback,
+                playback: _stateMachine,
+                previewPlayback: _previewPlayback!,
                 folderWatch: _folderWatch,
                 fileDialogs: fileDialogs,
-                prompts: prompts,
                 display: _displayService,
                 libVLC: _libVLC!);
 
@@ -123,7 +130,7 @@ public partial class App : Application
             {
                 try { _displayService?.Dispose(); } catch { }
                 try { _folderWatch?.Dispose(); } catch { }
-                try { _playback?.Dispose(); } catch { }
+                try { _stateMachine?.Dispose(); } catch { }
                 try { _previewPlayback?.Dispose(); } catch { }
                 try { _libVLC?.Dispose(); } catch { }
             };

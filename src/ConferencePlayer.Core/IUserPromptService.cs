@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace ConferencePlayer.Services;
+namespace ConferencePlayer.Core;
 
 public interface IUserPromptService
 {
