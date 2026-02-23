@@ -115,11 +115,6 @@ public sealed class AppSettings
     // ---- Logging ----
     public string LogsFolderPath { get; set; } = string.Empty;
 
-    public void EnsureDefaults()
-    {
-        // Defaults logic if needed.
-    }
-
     private static readonly string[] DangerousExtensions = new[]
     {
         ".exe", ".dll", ".bat", ".cmd", ".ps1", ".vbs", ".js", ".jar", ".msi", ".com", ".scr"
