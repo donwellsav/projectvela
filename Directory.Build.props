@@ -5,7 +5,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>Your Name</Authors>
     <Company>Your Company</Company>
     <Product>Your Product</Product>
@@ -16,3 +16,4 @@
     <DefineConstants>$(DefineConstants);PORTABLE</DefineConstants>
   </PropertyGroup>
 </Project>
+
