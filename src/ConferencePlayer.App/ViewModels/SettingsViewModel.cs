@@ -193,20 +193,28 @@ public sealed class SettingsViewModel : ObservableObject
 
     private bool ValidateAllHotkeys()
     {
-        if (!IsKeyValid("Play/Pause", HotKey_PlayPause)) return false;
-        if (!IsKeyValid("Stop", HotKey_Stop)) return false;
-        if (!IsKeyValid("Play Next", HotKey_PlayNext)) return false;
-        if (!IsKeyValid("Play Prev", HotKey_PlayPrev)) return false;
-        if (!IsKeyValid("Frame Step", HotKey_FrameStep)) return false;
-        if (!IsKeyValid("Select Next", HotKey_SelectNext)) return false;
-        if (!IsKeyValid("Select Prev", HotKey_SelectPrev)) return false;
-        if (!IsKeyValid("Seek Forward", HotKey_SeekForward)) return false;
-        if (!IsKeyValid("Seek Back", HotKey_SeekBack)) return false;
-        if (!IsKeyValid("Speed Up", HotKey_IncreaseSpeed)) return false;
-        if (!IsKeyValid("Speed Down", HotKey_DecreaseSpeed)) return false;
-        if (!IsKeyValid("Panic", HotKey_Panic)) return false;
-        if (!IsKeyValid("Add Files", HotKey_AddFiles)) return false;
-        if (!IsKeyValid("Add Folder", HotKey_AddFolder)) return false;
+        var hotkeys = new (string Name, string Value)[]
+        {
+            ("Play/Pause", HotKey_PlayPause),
+            ("Stop", HotKey_Stop),
+            ("Play Next", HotKey_PlayNext),
+            ("Play Prev", HotKey_PlayPrev),
+            ("Frame Step", HotKey_FrameStep),
+            ("Select Next", HotKey_SelectNext),
+            ("Select Prev", HotKey_SelectPrev),
+            ("Seek Forward", HotKey_SeekForward),
+            ("Seek Back", HotKey_SeekBack),
+            ("Speed Up", HotKey_IncreaseSpeed),
+            ("Speed Down", HotKey_DecreaseSpeed),
+            ("Panic", HotKey_Panic),
+            ("Add Files", HotKey_AddFiles),
+            ("Add Folder", HotKey_AddFolder)
+        };
+
+        foreach (var (name, value) in hotkeys)
+        {
+            if (!IsKeyValid(name, value)) return false;
+        }
 
         ValidationMessage = string.Empty;
         return true;
