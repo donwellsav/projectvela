@@ -80,6 +80,38 @@ public sealed class AppSettings
     /// </summary>
     public string PreferredOutputScreenName { get; set; } = string.Empty;
 
+    // ---- Hotkeys (Defaults = Option 1) ----
+    // Stored as string representations of KeyGesture (e.g. "Ctrl+O", "Space", "F12")
+
+    public string HotKey_PlayPause { get; set; } = "Space";
+    public string HotKey_Stop { get; set; } = "S";
+
+    // Transport (Immediate Playback)
+    public string HotKey_PlayNext { get; set; } = "PageDown";
+    public string HotKey_PlayPrev { get; set; } = "PageUp";
+
+    // Frame Step
+    public string HotKey_FrameStep { get; set; } = "F";
+
+    // Cueing / Selection (No Playback)
+    public string HotKey_SelectNext { get; set; } = "Ctrl+Right";
+    public string HotKey_SelectPrev { get; set; } = "Ctrl+Left";
+
+    // Seeking
+    public string HotKey_SeekForward { get; set; } = "Shift+Right";
+    public string HotKey_SeekBack { get; set; } = "Shift+Left";
+
+    // Speed
+    public string HotKey_IncreaseSpeed { get; set; } = "OemCloseBrackets"; // "]"
+    public string HotKey_DecreaseSpeed { get; set; } = "OemOpenBrackets";  // "["
+
+    // Safety
+    public string HotKey_Panic { get; set; } = "F12";
+
+    // File Operations
+    public string HotKey_AddFiles { get; set; } = "Ctrl+O";
+    public string HotKey_AddFolder { get; set; } = "Ctrl+Shift+O";
+
     // ---- Logging ----
     public string LogsFolderPath { get; set; } = string.Empty;
 

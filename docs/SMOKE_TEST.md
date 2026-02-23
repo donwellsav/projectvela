@@ -41,10 +41,21 @@ Run this after every PR merge and before every release.
 
 ## Hotkeys (only when app focused)
 
-1. With the Control window focused:
-   - Press **Space** (Play/Pause). Confirm it toggles.
-   - Press **F** (Frame step). Confirm it advances one frame (may depend on codec).
-2. Click outside the app (another window) and press **Space**.
+1. Open **Help > Keyboard Shortcuts** to view current keys.
+2. Confirm the defaults:
+   - **Space** (Play/Pause)
+   - **S** (Stop)
+   - **PageDown** (Play Next) / **PageUp** (Play Prev)
+   - **Ctrl+Right** (Cue Next) / **Ctrl+Left** (Cue Prev)
+   - **F** (Frame Step)
+   - **F12** (Panic)
+3. Go to **Settings > Shortcuts**.
+4. Change **Play/Pause** to something else (e.g. **P**).
+5. Save.
+6. Press **P** and confirm it toggles Play/Pause.
+7. Press **Space** and confirm it does *nothing* (old key unbound).
+8. Change it back to **Space** and Save.
+9. Click outside the app (another window) and press **Space**.
    - Confirm the app does *not* react.
 
 ## Playback speed

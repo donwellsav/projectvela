@@ -1,0 +1,35 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ConferencePlayer.ViewModels"
+        x:Class="ConferencePlayer.Views.HelpShortcutsWindow"
+        x:DataType="vm:HelpShortcutsViewModel"
+        Title="Keyboard Shortcuts"
+        Width="500" Height="600"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+  <DockPanel Margin="20">
+    <Button DockPanel.Dock="Bottom" Content="Close" HorizontalAlignment="Right" Click="Close_Click" Width="100"/>
+
+    <TextBlock DockPanel.Dock="Top" Text="Keyboard Shortcuts" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+
+    <Border BorderBrush="#333" BorderThickness="1" Background="#111">
+        <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Shortcuts}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#333" BorderThickness="0,0,0,1" Padding="10">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Text="{Binding Action}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <Border Grid.Column="1" Background="#333" CornerRadius="4" Padding="8,4">
+                                    <TextBlock Text="{Binding Key}" FontFamily="Consolas, Monospace" FontWeight="Bold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Border>
+  </DockPanel>
+</Window>

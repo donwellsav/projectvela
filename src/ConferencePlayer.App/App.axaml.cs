@@ -128,6 +128,9 @@ public partial class App : Application
 
             control.DataContext = vm;
 
+            // Apply hotkeys initially
+            control.ApplyHotkeys(settings);
+
             // Show windows
             output.Show();
             control.Show();

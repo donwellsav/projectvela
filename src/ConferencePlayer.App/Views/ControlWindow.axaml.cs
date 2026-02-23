@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using ConferencePlayer.Core;
 using ConferencePlayer.ViewModels;
 using LibVLCSharp.Shared;
 
@@ -14,6 +15,54 @@ public partial class ControlWindow : Window
     public ControlWindow()
     {
         InitializeComponent();
+    }
+
+    public void ApplyHotkeys(AppSettings settings)
+    {
+        if (DataContext is not ControlViewModel vm)
+            return;
+
+        KeyBindings.Clear();
+
+        void AddKey(string gestureStr, System.Windows.Input.ICommand command)
+        {
+            if (string.IsNullOrWhiteSpace(gestureStr)) return;
+            try
+            {
+                var gesture = KeyGesture.Parse(gestureStr);
+                KeyBindings.Add(new KeyBinding { Gesture = gesture, Command = command });
+            }
+            catch
+            {
+                // Ignore invalid
+            }
+        }
+
+        AddKey(settings.HotKey_PlayPause, vm.TogglePlayPauseCommand);
+        AddKey(settings.HotKey_Stop, vm.StopCommand);
+
+        AddKey(settings.HotKey_PlayNext, vm.PlayNextCommand);
+        AddKey(settings.HotKey_PlayPrev, vm.PlayPrevCommand);
+
+        AddKey(settings.HotKey_FrameStep, vm.FrameStepCommand);
+
+        AddKey(settings.HotKey_SelectNext, vm.SelectNextCommand);
+        AddKey(settings.HotKey_SelectPrev, vm.SelectPrevCommand);
+
+        AddKey(settings.HotKey_SeekForward, vm.SeekForwardCommand);
+        AddKey(settings.HotKey_SeekBack, vm.SeekBackCommand);
+
+        AddKey(settings.HotKey_IncreaseSpeed, vm.IncreaseSpeedCommand);
+        AddKey(settings.HotKey_DecreaseSpeed, vm.DecreaseSpeedCommand);
+
+        AddKey(settings.HotKey_Panic, vm.PanicCommand);
+
+        AddKey(settings.HotKey_AddFiles, vm.AddFilesCommand);
+        AddKey(settings.HotKey_AddFolder, vm.AddFolderCommand);
+
+        // Standard keys (hardcoded for now to preserve existing behavior)
+        AddKey("Enter", vm.PlaySelectedCommand);
+        AddKey("Delete", vm.RemoveSelectedCommand);
     }
 
     public void AttachPreviewPlayer(MediaPlayer player)
