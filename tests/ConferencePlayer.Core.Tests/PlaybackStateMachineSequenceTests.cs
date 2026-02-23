@@ -25,7 +25,9 @@ public class PlaybackStateMachineSequenceTests
         public bool IsMuted { get; private set; }
         public float Rate { get; private set; } = 1.0f;
 
+#pragma warning disable CS0067
         public event EventHandler? EndReached;
+#pragma warning restore CS0067
         public event EventHandler<string>? PlaybackError;
         public event EventHandler<PlaybackState>? StateChanged;
 
