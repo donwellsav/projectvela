@@ -50,12 +50,14 @@ Two-window model:
 
 - R3.1 Embedded **Preview** (in Control window) for cueing.
 - R3.2 Preview preloads the next item **paused on the first frame**.
-- R3.2a Cue mode (toggle in Settings):
+- R3.2a Cue mode (toggle in Settings or Operator UI):
   - Default: cue the **next** playlist item.
   - Option: cue the **selected** playlist item.
 - R3.3 Preview is silent by default.
   - Default: muted (safety)
-  - Option: enable preview audio monitoring (toggle in settings)
+  - Option: enable preview audio monitoring (toggle in Settings or Operator UI)
+- R3.4 Preview Transport Controls (Operator UI):
+  - Play, Pause, Stop buttons for the preview player.
 
 ### R4. Panic blackout
 

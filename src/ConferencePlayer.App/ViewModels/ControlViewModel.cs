@@ -35,6 +35,7 @@ public sealed class ControlViewModel : ObservableObject
     private PlaylistItemViewModel? _selectedItem;
     private string _statusText = "Idle";
     private string _previewStatusText = "Preview: (none)";
+    private bool _isPreviewPlaying;
 
     // We bind IsPanic to UI, but source of truth is StateMachine
     private bool _isPanic;
@@ -102,6 +103,19 @@ public sealed class ControlViewModel : ObservableObject
         OpenLogsFolderCommand = new RelayCommand(OpenLogsFolder);
         OpenHelpShortcutsCommand = new RelayCommand(OpenHelpShortcuts);
         CueNextPreviewCommand = new RelayCommand(CueNextPreview);
+
+        PlayPreviewCommand = new RelayCommand(PlayPreview);
+        PausePreviewCommand = new RelayCommand(PausePreview);
+        StopPreviewCommand = new RelayCommand(StopPreview);
+        TogglePreviewAudioCommand = new RelayCommand(TogglePreviewAudio);
+        SetCueModeNextCommand = new RelayCommand(SetCueModeNext);
+        SetCueModeSelectedCommand = new RelayCommand(SetCueModeSelected);
+
+        // Preview events
+        _previewPlayback.StateChanged += (_, s) => Dispatcher.UIThread.Post(() =>
+        {
+            IsPreviewPlaying = s == PlaybackState.Playing;
+        });
 
         // Playback events
         _playback.StateChanged += (_, s) => Dispatcher.UIThread.Post(() =>
@@ -202,6 +216,56 @@ public sealed class ControlViewModel : ObservableObject
         private set => Set(ref _previewStatusText, value);
     }
 
+    public bool IsPreviewPlaying
+    {
+        get => _isPreviewPlaying;
+        private set => Set(ref _isPreviewPlaying, value);
+    }
+
+    public bool IsPreviewAudioEnabled
+    {
+        get => _settings.PreviewAudioEnabled;
+        set
+        {
+            if (_settings.PreviewAudioEnabled != value)
+            {
+                _settings.PreviewAudioEnabled = value;
+                ApplyPreviewAudioSetting();
+                Raise();
+            }
+        }
+    }
+
+    public bool IsPreviewCueNext
+    {
+        get => !_settings.PreviewCuesSelectedItem;
+        set
+        {
+            if (value && _settings.PreviewCuesSelectedItem)
+            {
+                _settings.PreviewCuesSelectedItem = false;
+                Raise();
+                Raise(nameof(IsPreviewCueSelected));
+                CueNextPreview();
+            }
+        }
+    }
+
+    public bool IsPreviewCueSelected
+    {
+        get => _settings.PreviewCuesSelectedItem;
+        set
+        {
+            if (value && !_settings.PreviewCuesSelectedItem)
+            {
+                _settings.PreviewCuesSelectedItem = true;
+                Raise();
+                Raise(nameof(IsPreviewCueNext));
+                CueNextPreview();
+            }
+        }
+    }
+
     public bool IsPanic
     {
         get => _isPanic;
@@ -279,6 +343,13 @@ public sealed class ControlViewModel : ObservableObject
     public RelayCommand OpenLogsFolderCommand { get; }
     public RelayCommand OpenHelpShortcutsCommand { get; }
     public RelayCommand CueNextPreviewCommand { get; }
+
+    public RelayCommand PlayPreviewCommand { get; }
+    public RelayCommand PausePreviewCommand { get; }
+    public RelayCommand StopPreviewCommand { get; }
+    public RelayCommand TogglePreviewAudioCommand { get; }
+    public RelayCommand SetCueModeNextCommand { get; }
+    public RelayCommand SetCueModeSelectedCommand { get; }
 
     public void AddFiles(IEnumerable<string> paths, bool saveAfter = true)
     {
@@ -590,6 +661,8 @@ public sealed class ControlViewModel : ObservableObject
 
         try
         {
+            // Only reload if we are not already playing/loaded the correct file?
+            // For simplicity in v1 cueing: always reload to ensure fresh start (paused on frame 0).
             _previewPlayback.SetMute(!_settings.PreviewAudioEnabled);
             _previewPlayback.Load(next.FilePath, autoPlay: false);
 
@@ -603,9 +676,39 @@ public sealed class ControlViewModel : ObservableObject
         }
     }
 
+    private void PlayPreview() => _previewPlayback.Play();
+    private void PausePreview() => _previewPlayback.Pause();
+    private void StopPreview() => _previewPlayback.Stop();
+
+    private void TogglePreviewAudio()
+    {
+        IsPreviewAudioEnabled = !IsPreviewAudioEnabled;
+    }
+
+    private void SetCueModeNext()
+    {
+        IsPreviewCueNext = true;
+    }
+
+    private void SetCueModeSelected()
+    {
+        IsPreviewCueSelected = true;
+    }
+
     private void TogglePanic()
     {
         _playback.TogglePanic();
+        if (_playback.IsPanic)
+        {
+            // Silence preview as well
+            _previewPlayback.SetMute(true);
+            _previewPlayback.Pause();
+        }
+        else
+        {
+            // Restore preview audio setting
+            ApplyPreviewAudioSetting();
+        }
     }
 
     private void OpenSettings()
@@ -629,6 +732,10 @@ public sealed class ControlViewModel : ObservableObject
             {
                 ApplyMultiMonitorRules();
                 ApplyPreviewAudioSetting();
+                // Refresh properties in case settings changed
+                Raise(nameof(IsPreviewAudioEnabled));
+                Raise(nameof(IsPreviewCueNext));
+                Raise(nameof(IsPreviewCueSelected));
                 CueNextPreview();
                 _controlWindow.ApplyHotkeys(_settings);
             }
