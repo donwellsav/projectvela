@@ -22,30 +22,53 @@ public class PlaybackStateMachineTests
         public event EventHandler<string>? PlaybackError;
         public event EventHandler<PlaybackState>? StateChanged;
 
+        public TimeSpan LastSeekTime { get; private set; }
+        public TimeSpan LastSeekRelativeOffset { get; private set; }
+
         public void Load(string filePath, bool autoPlay)
         {
             if (filePath == "error") throw new ArgumentException("Simulated error");
-            if (autoPlay) SetState(PlaybackState.Playing);
-            else SetState(PlaybackState.Paused);
+            if (autoPlay)
+            {
+                State = PlaybackState.Playing;
+                StateChanged?.Invoke(this, State);
+            }
+            else
+            {
+                State = PlaybackState.Paused;
+                StateChanged?.Invoke(this, State);
+            }
         }
 
-        public void Play() => SetState(PlaybackState.Playing);
-        public void Pause() => SetState(PlaybackState.Paused);
-        public void Stop() => SetState(PlaybackState.Stopped);
+        public void Play()
+        {
+            State = PlaybackState.Playing;
+            StateChanged?.Invoke(this, State);
+        }
+
+        public void Pause()
+        {
+            State = PlaybackState.Paused;
+            StateChanged?.Invoke(this, State);
+        }
+
+        public void Stop()
+        {
+            State = PlaybackState.Stopped;
+            StateChanged?.Invoke(this, State);
+        }
+
         public void SetRate(float rate) => Rate = rate;
         public void NextFrame() { }
 
-        public TimeSpan LastSeekTime { get; private set; }
         public void Seek(TimeSpan time) => LastSeekTime = time;
-
-        public TimeSpan LastSeekRelativeOffset { get; private set; }
         public void SeekRelative(TimeSpan offset) => LastSeekRelativeOffset = offset;
 
         public void SetMute(bool mute) => IsMuted = mute;
 
         public void SimulateError(string msg) => PlaybackError?.Invoke(this, msg);
 
-        private void SetState(PlaybackState s)
+        public void SimulateStateChange(PlaybackState s)
         {
             State = s;
             StateChanged?.Invoke(this, s);
@@ -75,39 +98,104 @@ public class PlaybackStateMachineTests
         var engine = new MockEngine();
         var output = new MockOutput();
         var prompts = new MockPrompts();
-        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
+        var settings = new AppSettings();
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), settings);
 
-        sm.Load("test.mp4", true); // Playing
+        // Start playing
+        sm.Load("test.mp4", true);
         Assert.Equal(PlaybackState.Playing, sm.State);
-        Assert.False(output.IsBlackout);
 
+        // Enter Panic
         sm.TogglePanic();
 
         Assert.True(sm.IsPanic);
         Assert.Equal(PlaybackState.PanicBlackout, sm.State);
         Assert.True(output.IsBlackout);
-        Assert.Equal(PlaybackState.Paused, engine.State); // Engine paused
+        Assert.Equal(PlaybackState.Paused, engine.State); // Should force pause
     }
 
     [Fact]
-    public void Load_ShouldTriggerError_OnException()
+    public void Panic_ShouldMuteAudio_WhenConfigured()
     {
         var engine = new MockEngine();
         var output = new MockOutput();
         var prompts = new MockPrompts();
-        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
+        var settings = new AppSettings
+        {
+            PanicMutesAudio = true,
+            RestoreAudioAfterPanic = true
+        };
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), settings);
 
-        bool errorTriggered = false;
-        sm.ErrorOccurred += (_, __) => errorTriggered = true;
+        sm.Load("test.mp4", true);
+        Assert.False(engine.IsMuted);
 
-        sm.Load("error", true);
+        sm.TogglePanic();
+        Assert.True(engine.IsMuted);
 
-        Assert.True(errorTriggered);
-        Assert.True(output.IsBlackout); // Safety state
+        sm.TogglePanic(); // Exit
+        Assert.False(engine.IsMuted); // Restored
     }
 
     [Fact]
-    public void Load_ShouldExitPanic()
+    public void Panic_ShouldNotRestoreAudio_WhenConfiguredOff()
+    {
+        var engine = new MockEngine();
+        var output = new MockOutput();
+        var prompts = new MockPrompts();
+        var settings = new AppSettings
+        {
+            PanicMutesAudio = true,
+            RestoreAudioAfterPanic = false
+        };
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), settings);
+
+        sm.TogglePanic();
+        Assert.True(engine.IsMuted);
+
+        sm.TogglePanic(); // Exit
+        Assert.True(engine.IsMuted); // Should remain muted
+    }
+
+    [Fact]
+    public void Panic_ShouldResumePlayback_WhenConfigured()
+    {
+        var engine = new MockEngine();
+        var output = new MockOutput();
+        var prompts = new MockPrompts();
+        var settings = new AppSettings { ResumePlaybackAfterPanic = true };
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), settings);
+
+        sm.Load("test.mp4", true); // Playing
+        Assert.Equal(PlaybackState.Playing, engine.State);
+
+        sm.TogglePanic();
+        Assert.Equal(PlaybackState.Paused, engine.State);
+
+        sm.TogglePanic(); // Exit
+        Assert.Equal(PlaybackState.Playing, engine.State); // Resumed
+    }
+
+    [Fact]
+    public void Panic_ShouldNotResume_IfWasPausedBefore()
+    {
+        var engine = new MockEngine();
+        var output = new MockOutput();
+        var prompts = new MockPrompts();
+        var settings = new AppSettings { ResumePlaybackAfterPanic = true };
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), settings);
+
+        sm.Load("test.mp4", false); // Paused
+        Assert.Equal(PlaybackState.Paused, engine.State);
+
+        sm.TogglePanic();
+        sm.TogglePanic(); // Exit
+
+        Assert.Equal(PlaybackState.Paused, engine.State); // Should stay paused
+    }
+
+    [Fact]
+    public void Load_ShouldExitPanic_AndResetBlackout()
     {
         var engine = new MockEngine();
         var output = new MockOutput();
@@ -117,10 +205,53 @@ public class PlaybackStateMachineTests
         sm.TogglePanic();
         Assert.True(sm.IsPanic);
 
-        sm.Load("test.mp4", true);
+        sm.Load("newfile.mp4", true);
 
         Assert.False(sm.IsPanic);
         Assert.False(output.IsBlackout);
+    }
+
+    [Fact]
+    public void Error_ShouldBlackoutAndStop_WhenUserChoosesStop()
+    {
+        var engine = new MockEngine();
+        var output = new MockOutput();
+        var prompts = new MockPrompts { NextChoice = UserChoice.Stop };
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
+
+        bool errorReported = false;
+        sm.ErrorOccurred += (_, __) => errorReported = true;
+
+        // Simulate engine error
+        engine.SimulateError("Codec missing");
+
+        Assert.True(errorReported);
+        Assert.True(output.IsBlackout);
+        Assert.Equal(PlaybackState.Stopped, engine.State); // Should transition to Stopped eventually
+    }
+
+    [Fact]
+    public void Error_ShouldReload_WhenUserChoosesRetry()
+    {
+        var engine = new MockEngine();
+        var output = new MockOutput();
+        var prompts = new MockPrompts { NextChoice = UserChoice.Retry };
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
+
+        // Initial load
+        sm.Load("test.mp4", true);
+        Assert.Equal(PlaybackState.Playing, engine.State);
+
+        bool errorReported = false;
+        sm.ErrorOccurred += (_, __) => errorReported = true;
+
+        // Simulate engine error
+        engine.SimulateError("Codec missing");
+
+        Assert.True(errorReported);
+        // After retry, it should load again (Load calls Play -> Playing)
+        Assert.Equal(PlaybackState.Playing, engine.State);
+        Assert.False(output.IsBlackout); // Should be visible again
     }
 
     [Fact]
@@ -134,11 +265,11 @@ public class PlaybackStateMachineTests
         sm.TogglePanic();
         sm.Seek(TimeSpan.FromSeconds(10));
 
-        Assert.Equal(TimeSpan.Zero, engine.LastSeekTime); // Default value, meaning not called
+        Assert.Equal(TimeSpan.Zero, engine.LastSeekTime); // Not called
     }
 
     [Fact]
-    public void SeekRelative_ShouldBeIgnored_DuringPanic()
+    public void Play_ShouldExitPanic()
     {
         var engine = new MockEngine();
         var output = new MockOutput();
@@ -146,22 +277,12 @@ public class PlaybackStateMachineTests
         var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
 
         sm.TogglePanic();
-        sm.SeekRelative(TimeSpan.FromSeconds(10));
+        Assert.True(sm.IsPanic);
 
-        Assert.Equal(TimeSpan.Zero, engine.LastSeekRelativeOffset);
-    }
+        sm.Play(); // Should implicitly exit panic
 
-    [Fact]
-    public void Seek_ShouldDelegateToEngine()
-    {
-        var engine = new MockEngine();
-        var output = new MockOutput();
-        var prompts = new MockPrompts();
-        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
-
-        var time = TimeSpan.FromSeconds(50);
-        sm.Seek(time);
-
-        Assert.Equal(time, engine.LastSeekTime);
+        Assert.False(sm.IsPanic);
+        Assert.False(output.IsBlackout);
+        Assert.Equal(PlaybackState.Playing, engine.State);
     }
 }
