@@ -49,22 +49,15 @@ You should see 2 windows:
 
 Follow: `docs/SMOKE_TEST.md`
 
-## 5) Create an installer (per-user, no admin)
+## 5) Create a portable release
 
-### One-time install of the Velopack tool
-
-```powershell
-dotnet tool install -g vpk
-```
-
-### Publish and pack
+### Publish
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\publish-win.ps1
-powershell -ExecutionPolicy Bypass -File .\scripts\pack-velopack.ps1 -Version <VERSION>
 ```
 
-Your installer will be in `Releases\` as `ProjectVela-Setup.exe`.
+Your build will be in `publish/`. You can zip this folder for distribution.
 
 ## 6) How to use Jules + GitHub without chaos
 

@@ -7,6 +7,13 @@ using System.Threading.Tasks;
 
 namespace ConferencePlayer.Core;
 
+public class PlaylistState
+{
+    public List<string> Items { get; set; } = new();
+    public int SelectedIndex { get; set; } = -1;
+    public double PositionSeconds { get; set; } = 0.0;
+}
+
 /// <summary>
 /// Persists the operator playlist to a per-user JSON file.
 /// </summary>
@@ -19,58 +26,73 @@ public sealed class PlaylistStore
         _playlistFilePath = playlistFilePath;
     }
 
-    public IReadOnlyList<PlaylistItem> Load(AppLogger logger)
+    public PlaylistState Load(AppLogger logger)
     {
         try
         {
             if (!File.Exists(_playlistFilePath))
-                return Array.Empty<PlaylistItem>();
+                return new PlaylistState();
 
             var json = File.ReadAllText(_playlistFilePath);
-            var paths = JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+            PlaylistState state;
 
-            // Only keep existing files (offline local files only).
-            var items = paths
-                .Where(p => !string.IsNullOrWhiteSpace(p))
-                .Select(p => p.Trim())
-                .Where(File.Exists)
-                .Select(p => new PlaylistItem(p))
-                .ToList();
+            try
+            {
+                // Try new format first
+                state = JsonSerializer.Deserialize<PlaylistState>(json) ?? new PlaylistState();
 
-            logger.Info($"Playlist loaded: {items.Count} items");
-            return items;
+                // If Items is null/empty but json wasn't empty, check if it was the old format
+                if (state.Items == null || state.Items.Count == 0)
+                {
+                    // Fallback check: could be old list format
+                    var oldList = JsonSerializer.Deserialize<List<string>>(json);
+                    if (oldList != null && oldList.Count > 0)
+                    {
+                        state = new PlaylistState { Items = oldList };
+                    }
+                }
+            }
+            catch
+            {
+                // Deserialization failed, try old format explicitly
+                try
+                {
+                    var oldList = JsonSerializer.Deserialize<List<string>>(json);
+                    state = new PlaylistState { Items = oldList ?? new List<string>() };
+                }
+                catch
+                {
+                    // Both failed
+                    state = new PlaylistState();
+                }
+            }
+
+            // Validate files exist (offline only)
+            if (state.Items != null)
+            {
+                state.Items = state.Items
+                    .Where(p => !string.IsNullOrWhiteSpace(p))
+                    .Select(p => p.Trim())
+                    .Where(File.Exists)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
+            else
+            {
+                state.Items = new List<string>();
+            }
+
+            logger.Info($"Playlist loaded: {state.Items.Count} items, SelectedIndex: {state.SelectedIndex}, Pos: {state.PositionSeconds:F2}s");
+            return state;
         }
         catch (Exception ex)
         {
             logger.Error($"Failed to load playlist: {_playlistFilePath}", ex);
-            return Array.Empty<PlaylistItem>();
+            return new PlaylistState();
         }
     }
 
-    public void Save(IEnumerable<PlaylistItem> playlist, AppLogger logger)
-    {
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(_playlistFilePath)!);
-
-            var paths = playlist
-                .Select(x => x.FilePath)
-                .Where(p => !string.IsNullOrWhiteSpace(p))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            var json = JsonSerializer.Serialize(paths, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_playlistFilePath, json);
-
-            logger.Info($"Playlist saved: {paths.Count} items");
-        }
-        catch (Exception ex)
-        {
-            logger.Error($"Failed to save playlist: {_playlistFilePath}", ex);
-        }
-    }
-
-    public async Task SaveAsync(IEnumerable<PlaylistItem> playlist, AppLogger logger)
+    public void Save(PlaylistState state, AppLogger logger)
     {
         try
         {
@@ -78,16 +100,39 @@ public sealed class PlaylistStore
             if (!string.IsNullOrEmpty(dir))
                 Directory.CreateDirectory(dir);
 
-            var paths = playlist
-                .Select(x => x.FilePath)
+            // Clean list
+            state.Items = state.Items
                 .Where(p => !string.IsNullOrWhiteSpace(p))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            var json = JsonSerializer.Serialize(paths, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(_playlistFilePath, json);
+            var json = JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_playlistFilePath, json);
+        }
+        catch (Exception ex)
+        {
+            logger.Error($"Failed to save playlist (sync): {_playlistFilePath}", ex);
+        }
+    }
 
-            logger.Info($"Playlist saved: {paths.Count} items");
+    public async Task SaveAsync(PlaylistState state, AppLogger logger)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(_playlistFilePath);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
+
+            // Clean list
+            state.Items = state.Items
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var json = JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(_playlistFilePath, json);
+            // Logging every save might be too verbose if we save on pause/stop often.
+            // logger.Info($"Playlist saved: {state.Items.Count} items");
         }
         catch (Exception ex)
         {

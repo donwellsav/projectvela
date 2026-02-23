@@ -71,7 +71,10 @@
             </ListBox.Styles>
             <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:PlaylistItemViewModel">
-                    <Grid ColumnDefinitions="*, 120, 120">
+                    <Grid ColumnDefinitions="*, 120, 120" Background="Transparent"
+                          PointerPressed="OnPlaylistItemPointerPressed"
+                          PointerMoved="OnPlaylistItemPointerMoved"
+                          PointerReleased="OnPlaylistItemPointerReleased">
                         <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                         <TextBlock Grid.Column="1" Text="{Binding Duration}" Opacity="0.7" VerticalAlignment="Center"/>
                         <TextBlock Grid.Column="2" Text="{Binding Status}" Opacity="0.7" VerticalAlignment="Center"/>
@@ -182,6 +185,7 @@
                 <Button Content="+10s" Command="{Binding SeekForwardCommand}" Width="60" Height="40" ToolTip.Tip="Shift+Right"/>
                 <Button Content="Next" Command="{Binding PlayNextCommand}" Width="80" Height="40" ToolTip.Tip="Play Next"/>
                 <Button Content="Step" Command="{Binding FrameStepCommand}" Height="40" ToolTip.Tip="F"/>
+                <ToggleButton Content="Loop" IsChecked="{Binding IsLooping}" Height="40" ToolTip.Tip="Toggle Playlist Loop"/>
             </StackPanel>
 
             <!-- Right: Tools -->
