@@ -121,9 +121,9 @@
               <Border Background="#330000" CornerRadius="6" Padding="15">
                   <StackPanel Spacing="10">
                       <TextBlock Text="🚨 PANIC CONTROL" FontWeight="Bold" Foreground="#FF5555" FontSize="24" HorizontalAlignment="Center"/>
-                      <Button Content="BLACKOUT (F12)"
+                      <Button Content="{Binding PanicButtonText}"
                               Command="{Binding PanicCommand}"
-                              Background="#AA0000"
+                              Background="{Binding PanicButtonColor}"
                               Foreground="White"
                               HorizontalAlignment="Stretch"
                               FontSize="24"

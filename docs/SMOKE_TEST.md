@@ -82,18 +82,31 @@ Run this after every PR merge and before every release.
 
 ## Panic blackout
 
-1. Start playing a video.
-2. Press **F12** or click **PANIC**.
-3. Confirm:
-   - Output becomes black immediately
-   - Audio is muted (default)
-   - Operator UI shows panic mode enabled
-4. Press **F12** again.
-5. Confirm:
-   - Output returns from black
-   - Playback is **paused** by default (operator must press Play)
-   - Audio mute state restores (if the setting enables restore)
-6. Optional: enable "Resume playback automatically when leaving panic" in Settings, repeat, and confirm it auto-resumes if it was playing before panic.
+1. **Standard Panic:**
+   - Start playback of a video with audio.
+   - Press **F12** (Panic) or click the red "BLACKOUT (F12)" button.
+   - [ ] Output window goes instantly **black**.
+   - [ ] Audio is **muted** (silence).
+   - [ ] Playback is **paused** (Status shows 'PANIC', button turns GREEN "RESUME (F12)").
+   - [ ] Transport buttons (Play/Pause) work but might exit panic depending on action.
+
+2. **Resume from Panic:**
+   - Press **F12** again or click "RESUME (F12)".
+   - [ ] Output window restores video immediately.
+   - [ ] Audio is **restored**.
+   - [ ] Playback remains **paused** (Default behavior).
+   - Press Space (Play) to resume.
+
+3. **Panic Settings Verification:**
+   - Go to Settings -> General -> Panic Blackout.
+   - **Uncheck** "Mute audio during panic".
+   - **Check** "Resume playback automatically when leaving panic".
+   - Save.
+   - Start Playback -> Panic (F12).
+     - [ ] Output black.
+     - [ ] Audio **stops** (because of Pause).
+   - Resume (F12).
+     - [ ] Playback **automatically resumes** (because of "Resume playback" setting).
 
 ## Folder watching
 
@@ -114,11 +127,17 @@ Run this after every PR merge and before every release.
    - Output moves to primary screen
    - Control window stays visible on top
 
-## Error behavior
+## Error Handling (Safety)
 
-1. Add a corrupted/unsupported media file (or rename a random file to .mp4).
-2. Attempt to play it.
-3. Confirm:
-   - output goes black
-   - operator sees an error dialog
-   - a log is written in the logs folder
+1. **Simulate Error:**
+   - Add a corrupted/unsupported media file (or rename a text file to .mp4).
+   - Attempt to play it.
+2. **Verify Response:**
+   - [ ] Output window goes **black** immediately.
+   - [ ] Playback **pauses/stops**.
+   - [ ] A modal dialog appears: "Critical Playback Error" (or similar).
+3. **Recovery:**
+   - Choose "Stop".
+   - [ ] App remains stable (no crash).
+   - [ ] Output remains black/logo.
+   - [ ] You can load another file and play.
