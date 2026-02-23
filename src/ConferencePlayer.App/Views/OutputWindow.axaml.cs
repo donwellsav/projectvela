@@ -4,7 +4,7 @@ using LibVLCSharp.Shared;
 
 namespace ConferencePlayer.Views;
 
-public partial class OutputWindow : Window
+public partial class OutputWindow : Window, IOutputWindow
 {
     public OutputWindow()
     {

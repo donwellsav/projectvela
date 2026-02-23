@@ -16,8 +16,8 @@ public sealed class SettingsViewModel : ObservableObject
     private readonly SettingsStore _settingsStore;
     private readonly AppLogger _logger;
     private readonly IFileDialogService _fileDialogs;
-    private readonly DisplayService _display;
-    private readonly OutputWindow _outputWindow;
+    private readonly IDisplayService _display;
+    private readonly IOutputWindow _outputWindow;
     private readonly FolderWatchService _folderWatch;
 
     public event EventHandler? RequestClose;
@@ -27,8 +27,8 @@ public sealed class SettingsViewModel : ObservableObject
         SettingsStore settingsStore,
         AppLogger logger,
         IFileDialogService fileDialogs,
-        DisplayService display,
-        OutputWindow outputWindow,
+        IDisplayService display,
+        IOutputWindow outputWindow,
         FolderWatchService folderWatch)
     {
         _settings = settings;

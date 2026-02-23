@@ -10,7 +10,7 @@ using LibVLCSharp.Shared;
 
 namespace ConferencePlayer.Views;
 
-public partial class ControlWindow : Window
+public partial class ControlWindow : Window, IControlWindow
 {
     public ControlWindow()
     {

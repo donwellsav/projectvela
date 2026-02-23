@@ -17,8 +17,8 @@ namespace ConferencePlayer.ViewModels;
 
 public sealed class ControlViewModel : ObservableObject
 {
-    private readonly ControlWindow _controlWindow;
-    private readonly OutputWindow _outputWindow;
+    private readonly IControlWindow _controlWindow;
+    private readonly IOutputWindow _outputWindow;
 
     private readonly AppLogger _logger;
     private readonly AppSettings _settings;
@@ -29,7 +29,7 @@ public sealed class ControlViewModel : ObservableObject
     private readonly IPlaybackEngine _previewPlayback;
     private readonly FolderWatchService _folderWatch;
     private readonly IFileDialogService _fileDialogs;
-    private readonly DisplayService _display;
+    private readonly IDisplayService _display;
     private readonly LibVLC _libVLC;
 
     private PlaylistItemViewModel? _selectedItem;
@@ -45,8 +45,8 @@ public sealed class ControlViewModel : ObservableObject
     private float _selectedSpeed = 1.0f;
 
     public ControlViewModel(
-        ControlWindow controlWindow,
-        OutputWindow outputWindow,
+        IControlWindow controlWindow,
+        IOutputWindow outputWindow,
         AppLogger logger,
         AppSettings settings,
         SettingsStore settingsStore,
@@ -55,7 +55,7 @@ public sealed class ControlViewModel : ObservableObject
         IPlaybackEngine previewPlayback,
         FolderWatchService folderWatch,
         IFileDialogService fileDialogs,
-        DisplayService display,
+        IDisplayService display,
         LibVLC libVLC)
     {
         _controlWindow = controlWindow;
@@ -745,7 +745,10 @@ public sealed class ControlViewModel : ObservableObject
             }
         };
 
-        win.ShowDialog(_controlWindow);
+        if (_controlWindow is Avalonia.Controls.Window w)
+        {
+            win.ShowDialog(w);
+        }
     }
 
     private void ApplyPreviewAudioSetting()
@@ -764,7 +767,10 @@ public sealed class ControlViewModel : ObservableObject
     {
         var vm = new HelpShortcutsViewModel(_settings);
         var win = new HelpShortcutsWindow { DataContext = vm };
-        win.ShowDialog(_controlWindow);
+        if (_controlWindow is Avalonia.Controls.Window w)
+        {
+            win.ShowDialog(w);
+        }
     }
 
     private void OpenLogsFolder()

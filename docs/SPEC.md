@@ -58,6 +58,10 @@ Two-window model:
   - Option: enable preview audio monitoring (toggle in Settings or Operator UI)
 - R3.4 Preview Transport Controls (Operator UI):
   - Play, Pause, Stop buttons for the preview player.
+- R3.5 Seamless Preview:
+  - Preview loading must be silent and static (no audio burst or video motion). The engine must start in a paused state or remain muted until paused.
+- R3.6 Preview Panic:
+  - When Panic is active, the Preview player must also be paused and muted to ensure total silence.
 
 ### R4. Panic blackout
 
