@@ -27,14 +27,15 @@ Two-window model:
 - R1.1 Plays local media files (offline, bundled codecs, no network initialization).
 - R1.2 Must be stable: **never crash**. On error: the *Playback State Machine* must immediately transition to an **Error** state, force the output to **black** (via `IOutputController`), log the error, and then prompt the operator for action (Retry/Skip/Stop).
 - R1.3 Transport:
-  - Play/Pause
+  - Play/Pause (Hotkey: Space)
   - Stop (Hotkey: S)
-  - Next/Prev (Standard transport: Plays next/prev item immediately)
-  - Select Next/Prev (Operator cueing: Selects item without playing, updates preview)
-  - Playback speed (Hotkeys: [ Decrease, ] Increase)
-  - Frame-step forward
+  - Next/Prev (Standard transport: Plays next/prev item immediately) (Hotkeys: PageDown / PageUp)
+  - Select Next/Prev (Operator cueing: Selects item without playing, updates preview) (Hotkeys: Ctrl+Right / Ctrl+Left)
+  - Playback speed (Hotkeys: ] Increase, [ Decrease)
+  - Frame-step forward (Hotkey: F)
   - Seek Forward/Back (10s) (Hotkeys: Shift+Right / Shift+Left)
 - R1.4 Hotkeys only work when the app is focused.
+- R1.5 Hotkeys are user-configurable in Settings.
 
 ### R2. Playlist
 

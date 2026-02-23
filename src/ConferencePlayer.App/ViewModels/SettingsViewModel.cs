@@ -123,12 +123,42 @@ public sealed class SettingsViewModel : ObservableObject
         set { _settings.ResumePlaybackAfterPanic = value; Raise(); }
     }
 
+    // Hotkeys
+    public string HotKey_PlayPause { get => _settings.HotKey_PlayPause; set { _settings.HotKey_PlayPause = value; Raise(); } }
+    public string HotKey_Stop { get => _settings.HotKey_Stop; set { _settings.HotKey_Stop = value; Raise(); } }
+
+    public string HotKey_PlayNext { get => _settings.HotKey_PlayNext; set { _settings.HotKey_PlayNext = value; Raise(); } }
+    public string HotKey_PlayPrev { get => _settings.HotKey_PlayPrev; set { _settings.HotKey_PlayPrev = value; Raise(); } }
+
+    public string HotKey_FrameStep { get => _settings.HotKey_FrameStep; set { _settings.HotKey_FrameStep = value; Raise(); } }
+
+    public string HotKey_SelectNext { get => _settings.HotKey_SelectNext; set { _settings.HotKey_SelectNext = value; Raise(); } }
+    public string HotKey_SelectPrev { get => _settings.HotKey_SelectPrev; set { _settings.HotKey_SelectPrev = value; Raise(); } }
+
+    public string HotKey_SeekForward { get => _settings.HotKey_SeekForward; set { _settings.HotKey_SeekForward = value; Raise(); } }
+    public string HotKey_SeekBack { get => _settings.HotKey_SeekBack; set { _settings.HotKey_SeekBack = value; Raise(); } }
+
+    public string HotKey_IncreaseSpeed { get => _settings.HotKey_IncreaseSpeed; set { _settings.HotKey_IncreaseSpeed = value; Raise(); } }
+    public string HotKey_DecreaseSpeed { get => _settings.HotKey_DecreaseSpeed; set { _settings.HotKey_DecreaseSpeed = value; Raise(); } }
+
+    public string HotKey_Panic { get => _settings.HotKey_Panic; set { _settings.HotKey_Panic = value; Raise(); } }
+
+    public string HotKey_AddFiles { get => _settings.HotKey_AddFiles; set { _settings.HotKey_AddFiles = value; Raise(); } }
+    public string HotKey_AddFolder { get => _settings.HotKey_AddFolder; set { _settings.HotKey_AddFolder = value; Raise(); } }
+
     public string AppVersion => $"Project Vela v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)}";
 
     public string PreferredOutputScreenName
     {
         get => _settings.PreferredOutputScreenName;
         set { _settings.PreferredOutputScreenName = value; Raise(); }
+    }
+
+    private string _validationMessage = string.Empty;
+    public string ValidationMessage
+    {
+        get => _validationMessage;
+        set => Set(ref _validationMessage, value);
     }
 
     public RelayCommand BrowseWatchFolderCommand { get; }
@@ -142,8 +172,51 @@ public sealed class SettingsViewModel : ObservableObject
             WatchedFolderPath = folder;
     }
 
+    private bool IsKeyValid(string name, string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            ValidationMessage = $"{name} hotkey cannot be empty.";
+            return false;
+        }
+        try
+        {
+            Avalonia.Input.KeyGesture.Parse(key);
+            return true;
+        }
+        catch
+        {
+            ValidationMessage = $"{name} hotkey '{key}' is invalid.";
+            return false;
+        }
+    }
+
+    private bool ValidateAllHotkeys()
+    {
+        if (!IsKeyValid("Play/Pause", HotKey_PlayPause)) return false;
+        if (!IsKeyValid("Stop", HotKey_Stop)) return false;
+        if (!IsKeyValid("Play Next", HotKey_PlayNext)) return false;
+        if (!IsKeyValid("Play Prev", HotKey_PlayPrev)) return false;
+        if (!IsKeyValid("Frame Step", HotKey_FrameStep)) return false;
+        if (!IsKeyValid("Select Next", HotKey_SelectNext)) return false;
+        if (!IsKeyValid("Select Prev", HotKey_SelectPrev)) return false;
+        if (!IsKeyValid("Seek Forward", HotKey_SeekForward)) return false;
+        if (!IsKeyValid("Seek Back", HotKey_SeekBack)) return false;
+        if (!IsKeyValid("Speed Up", HotKey_IncreaseSpeed)) return false;
+        if (!IsKeyValid("Speed Down", HotKey_DecreaseSpeed)) return false;
+        if (!IsKeyValid("Panic", HotKey_Panic)) return false;
+        if (!IsKeyValid("Add Files", HotKey_AddFiles)) return false;
+        if (!IsKeyValid("Add Folder", HotKey_AddFolder)) return false;
+
+        ValidationMessage = string.Empty;
+        return true;
+    }
+
     private void Save()
     {
+        if (!ValidateAllHotkeys())
+            return;
+
         // NOTE (v1): watched-folder filtering UI is deferred.
         _settingsStore.Save(_settings, _logger);
 

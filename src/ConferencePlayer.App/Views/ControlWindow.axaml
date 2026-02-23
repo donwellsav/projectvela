@@ -9,25 +9,6 @@
         FontSize="16"
         WindowStartupLocation="CenterScreen">
 
-  <Window.KeyBindings>
-    <KeyBinding Gesture="Space" Command="{Binding TogglePlayPauseCommand}"/>
-    <KeyBinding Gesture="Enter" Command="{Binding PlaySelectedCommand}"/>
-    <KeyBinding Gesture="Delete" Command="{Binding RemoveSelectedCommand}"/>
-    <KeyBinding Gesture="F" Command="{Binding FrameStepCommand}"/>
-    <KeyBinding Gesture="F12" Command="{Binding PanicCommand}"/>
-    <KeyBinding Gesture="S" Command="{Binding StopCommand}"/>
-
-    <KeyBinding Gesture="Ctrl+O" Command="{Binding AddFilesCommand}"/>
-    <KeyBinding Gesture="Ctrl+Shift+O" Command="{Binding AddFolderCommand}"/>
-
-    <KeyBinding Gesture="Ctrl+Left" Command="{Binding SelectPrevCommand}"/>
-    <KeyBinding Gesture="Ctrl+Right" Command="{Binding SelectNextCommand}"/>
-    <KeyBinding Gesture="Shift+Left" Command="{Binding SeekBackCommand}"/>
-    <KeyBinding Gesture="Shift+Right" Command="{Binding SeekForwardCommand}"/>
-    <KeyBinding Gesture="OemOpenBrackets" Command="{Binding DecreaseSpeedCommand}"/>
-    <KeyBinding Gesture="OemCloseBrackets" Command="{Binding IncreaseSpeedCommand}"/>
-  </Window.KeyBindings>
-
   <Grid RowDefinitions="Auto, *, Auto">
     <!-- 1. Top Menu -->
     <Menu Grid.Row="0">
@@ -42,6 +23,9 @@
       </MenuItem>
       <MenuItem Header="_Tools">
         <MenuItem Header="_Settings" Command="{Binding OpenSettingsCommand}"/>
+      </MenuItem>
+      <MenuItem Header="_Help">
+        <MenuItem Header="Keyboard _Shortcuts" Command="{Binding OpenHelpShortcutsCommand}"/>
       </MenuItem>
     </Menu>
 

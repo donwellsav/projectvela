@@ -98,6 +98,7 @@ public sealed class ControlViewModel : ObservableObject
         PanicCommand = new RelayCommand(TogglePanic);
         OpenSettingsCommand = new RelayCommand(OpenSettings);
         OpenLogsFolderCommand = new RelayCommand(OpenLogsFolder);
+        OpenHelpShortcutsCommand = new RelayCommand(OpenHelpShortcuts);
         CueNextPreviewCommand = new RelayCommand(CueNextPreview);
 
         // Playback events
@@ -255,6 +256,7 @@ public sealed class ControlViewModel : ObservableObject
     public RelayCommand PanicCommand { get; }
     public RelayCommand OpenSettingsCommand { get; }
     public RelayCommand OpenLogsFolderCommand { get; }
+    public RelayCommand OpenHelpShortcutsCommand { get; }
     public RelayCommand CueNextPreviewCommand { get; }
 
     public void AddFiles(IEnumerable<string> paths, bool saveAfter = true)
@@ -607,6 +609,7 @@ public sealed class ControlViewModel : ObservableObject
                 ApplyMultiMonitorRules();
                 ApplyPreviewAudioSetting();
                 CueNextPreview();
+                _controlWindow.ApplyHotkeys(_settings);
             }
             catch (Exception ex)
             {
@@ -627,6 +630,13 @@ public sealed class ControlViewModel : ObservableObject
         {
             _logger.Error("Applying preview audio setting failed", ex);
         }
+    }
+
+    private void OpenHelpShortcuts()
+    {
+        var vm = new HelpShortcutsViewModel(_settings);
+        var win = new HelpShortcutsWindow { DataContext = vm };
+        win.ShowDialog(_controlWindow);
     }
 
     private void OpenLogsFolder()
