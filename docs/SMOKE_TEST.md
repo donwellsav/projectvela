@@ -84,3 +84,15 @@
 - [ ] **Verify**: Output window moves to 2nd screen automatically.
 - [ ] **Disconnect**: Unplug 2nd screen.
 - [ ] **Verify**: Output window moves behind Control window on primary screen.
+
+## 9. Logging & Configuration
+
+- [ ] **Open Logs**: Menu > View > Open Logs Folder.
+- [ ] **Verify**: Explorer opens to the active log directory.
+- [ ] **Verify**: A new log file exists for the current session.
+- [ ] **Change Log Path**: Settings > General > Logging.
+- [ ] **Action**: Browse to a new folder (e.g. `C:\Temp\Logs`).
+- [ ] **Verify**: "Restart required" message appears.
+- [ ] **Restart**: Close and reopen the app.
+- [ ] **Verify**: Logs are now created in the new folder.
+- [ ] **Verify**: "Open Logs Folder" opens the new folder.

@@ -88,6 +88,13 @@ Two-window model:
 - R5.4 Commercial distribution must include a licensing compliance plan (LibVLC/LibVLCSharp is LGPL).
 - R5.5 Manual updates only: do NOT implement update checks/notifications/calls.
 
+### R6. Logging
+
+- R6.1 Log file per session (`conferenceplayer-{date}.log`).
+- R6.2 Log folder is configurable in Settings (requires restart).
+- R6.3 Auto-cleanup: On startup, delete logs older than 30 days.
+- R6.4 "Open Logs Folder" command opens the active log directory.
+
 ## Acceptance (MVP)
 
 The smoke test checklist in `docs/SMOKE_TEST.md` is the minimum acceptance suite for each release.
