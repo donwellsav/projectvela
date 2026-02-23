@@ -30,6 +30,7 @@ public sealed class ControlViewModel : ObservableObject
     private readonly FolderWatchService _folderWatch;
     private readonly IFileDialogService _fileDialogs;
     private readonly IDisplayService _display;
+    private readonly IOsExplorerService _osExplorer;
     private readonly LibVLC _libVLC;
 
     private PlaylistItemViewModel? _selectedItem;
@@ -56,6 +57,7 @@ public sealed class ControlViewModel : ObservableObject
         FolderWatchService folderWatch,
         IFileDialogService fileDialogs,
         IDisplayService display,
+        IOsExplorerService osExplorer,
         LibVLC libVLC)
     {
         _controlWindow = controlWindow;
@@ -71,6 +73,7 @@ public sealed class ControlViewModel : ObservableObject
         _folderWatch = folderWatch;
         _fileDialogs = fileDialogs;
         _display = display;
+        _osExplorer = osExplorer;
 
         Playlist = new ObservableCollection<PlaylistItemViewModel>();
 
@@ -864,12 +867,7 @@ public sealed class ControlViewModel : ObservableObject
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
 
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "explorer.exe",
-                Arguments = folder,
-                UseShellExecute = true
-            });
+            _osExplorer.OpenFolder(folder);
         }
         catch (Exception ex)
         {

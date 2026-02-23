@@ -134,6 +134,7 @@ public partial class App : Application
             _folderWatch = new FolderWatchService(settings, _logger);
 
             _displayService = new DisplayService(control);
+            var osExplorer = new OsExplorerService();
             var playlistStore = new PlaylistStore(PathHelpers.GetDefaultPlaylistFile());
 
             _stateMachine = new PlaybackStateMachine(
@@ -155,6 +156,7 @@ public partial class App : Application
                 folderWatch: _folderWatch,
                 fileDialogs: fileDialogs,
                 display: _displayService,
+                osExplorer: osExplorer,
                 libVLC: _libVLC!);
 
             control.DataContext = vm;
