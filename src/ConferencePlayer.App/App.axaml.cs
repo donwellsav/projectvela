@@ -59,7 +59,9 @@ public partial class App : Application
             // Bootstrap logger into default location first.
             var tempLogger = new AppLogger(PathHelpers.GetDefaultLogsFolder());
             var settingsStore = new SettingsStore(settingsPath);
-            var settings = settingsStore.LoadOrCreateDefault(tempLogger);
+            // Safely block startup for async settings load to ensure safe window creation.
+            // Using Task.Run to avoid deadlocks on the UI thread context.
+            var settings = Task.Run(() => settingsStore.LoadOrCreateDefaultAsync(tempLogger)).GetAwaiter().GetResult();
 
             // If settings specify a custom log path, switch to it.
             var configuredLogPath = settings.LogsFolderPath;
