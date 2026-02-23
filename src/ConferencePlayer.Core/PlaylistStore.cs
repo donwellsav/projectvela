@@ -20,6 +20,7 @@ public class PlaylistState
 public sealed class PlaylistStore
 {
     private readonly string _playlistFilePath;
+    private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
     public PlaylistStore(string playlistFilePath)
     {
@@ -106,8 +107,9 @@ public sealed class PlaylistStore
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            var json = JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_playlistFilePath, json);
+            // Streaming serialization to reduce memory allocation
+            using var stream = File.Create(_playlistFilePath);
+            JsonSerializer.Serialize(stream, state, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -129,8 +131,10 @@ public sealed class PlaylistStore
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            var json = JsonSerializer.Serialize(state, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(_playlistFilePath, json);
+            // Use async stream to avoid blocking UI thread during large playlist serialization
+            await using var stream = new FileStream(_playlistFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
+            await JsonSerializer.SerializeAsync(stream, state, _jsonOptions);
+
             // Logging every save might be too verbose if we save on pause/stop often.
             // logger.Info($"Playlist saved: {state.Items.Count} items");
         }
