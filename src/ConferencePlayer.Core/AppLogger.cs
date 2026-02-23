@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Linq;
 
 namespace ConferencePlayer.Core;
 
@@ -23,6 +24,39 @@ public sealed class AppLogger
     }
 
     public string LogFilePath => _logFilePath;
+
+    public void DeleteOldLogs(int daysToKeep)
+    {
+        try
+        {
+            var folder = Path.GetDirectoryName(_logFilePath);
+            if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder)) return;
+
+            var cutoff = DateTime.UtcNow.AddDays(-daysToKeep);
+            var files = Directory.EnumerateFiles(folder, "conferenceplayer-*.log");
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    var fi = new FileInfo(file);
+                    // Check creation time or last write time
+                    if (fi.CreationTimeUtc < cutoff)
+                    {
+                        fi.Delete();
+                    }
+                }
+                catch
+                {
+                    // Swallow individual file deletion errors (e.g. locked file)
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Error("Failed to clean up old logs", ex);
+        }
+    }
 
     public void Info(string message) => Write("INFO", message);
 

@@ -57,12 +57,43 @@ public partial class App : Application
             var settingsPath = PathHelpers.GetDefaultSettingsFile();
 
             // Bootstrap logger into default location first.
-            var bootstrapLogger = new AppLogger(PathHelpers.GetDefaultLogsFolder());
+            var tempLogger = new AppLogger(PathHelpers.GetDefaultLogsFolder());
             var settingsStore = new SettingsStore(settingsPath);
-            var settings = settingsStore.LoadOrCreateDefault(bootstrapLogger);
+            var settings = settingsStore.LoadOrCreateDefault(tempLogger);
 
-            _logger = bootstrapLogger;
+            // If settings specify a custom log path, switch to it.
+            var configuredLogPath = settings.LogsFolderPath;
+            if (string.IsNullOrWhiteSpace(configuredLogPath))
+            {
+                configuredLogPath = PathHelpers.GetDefaultLogsFolder();
+            }
+
+            // Check if we need to switch loggers (normalize paths for comparison)
+            var currentPath = Path.GetFullPath(PathHelpers.GetDefaultLogsFolder());
+            var targetPath = Path.GetFullPath(configuredLogPath);
+
+            if (!string.Equals(currentPath, targetPath, StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    _logger = new AppLogger(targetPath);
+                    tempLogger.Info($"Switching logger to configured path: {targetPath}");
+                }
+                catch (Exception ex)
+                {
+                    tempLogger.Error($"Failed to initialize logger at {targetPath}. Falling back to default.", ex);
+                    _logger = tempLogger;
+                }
+            }
+            else
+            {
+                _logger = tempLogger;
+            }
+
             _logger.Info($"App started. Version: {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}");
+
+            // Clean up old logs (older than 30 days)
+            _logger.DeleteOldLogs(30);
 
             // Playback
             try

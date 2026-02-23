@@ -845,11 +845,16 @@ public sealed class ControlViewModel : ObservableObject
     {
         try
         {
-            var folder = _settings.LogsFolderPath;
+            // Use the actual logger path to ensure we open the active log folder
+            // (even if settings have changed but app hasn't restarted yet).
+            var logFile = _logger.LogFilePath;
+            var folder = Path.GetDirectoryName(logFile);
+
             if (string.IsNullOrWhiteSpace(folder))
                 folder = PathHelpers.GetDefaultLogsFolder();
 
-            Directory.CreateDirectory(folder);
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
 
             Process.Start(new ProcessStartInfo
             {

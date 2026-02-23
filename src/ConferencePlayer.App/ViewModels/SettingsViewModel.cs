@@ -45,11 +45,39 @@ public sealed class SettingsViewModel : ObservableObject
         _display.ScreensChanged += (_, __) => Dispatcher.UIThread.Post(RefreshScreens);
 
         BrowseWatchFolderCommand = new RelayCommand(async () => await BrowseWatchFolderAsync());
+        BrowseLogsFolderCommand = new RelayCommand(async () => await BrowseLogsFolderAsync());
         SaveCommand = new RelayCommand(async () => await SaveAsync());
         CancelCommand = new RelayCommand(() => RequestClose?.Invoke(this, EventArgs.Empty));
+
+        // Initial check for logs path
+        _initialLogsPath = _settings.LogsFolderPath;
     }
 
     public ObservableCollection<string> AvailableScreens { get; }
+
+    // Logging
+    private string _initialLogsPath = string.Empty;
+    private string _logsRestartMessage = string.Empty;
+
+    public string LogsFolderPath
+    {
+        get => _settings.LogsFolderPath;
+        set
+        {
+            if (_settings.LogsFolderPath != value)
+            {
+                _settings.LogsFolderPath = value;
+                Raise();
+                UpdateLogsRestartMessage();
+            }
+        }
+    }
+
+    public string LogsRestartMessage
+    {
+        get => _logsRestartMessage;
+        set => Set(ref _logsRestartMessage, value);
+    }
 
     public bool WatchFolderEnabled
     {
@@ -162,8 +190,31 @@ public sealed class SettingsViewModel : ObservableObject
     }
 
     public RelayCommand BrowseWatchFolderCommand { get; }
+    public RelayCommand BrowseLogsFolderCommand { get; }
     public RelayCommand SaveCommand { get; }
     public RelayCommand CancelCommand { get; }
+
+    private async Task BrowseLogsFolderAsync()
+    {
+        var folder = await _fileDialogs.PickFolderAsync();
+        if (!string.IsNullOrWhiteSpace(folder))
+            LogsFolderPath = folder;
+    }
+
+    private void UpdateLogsRestartMessage()
+    {
+        var current = LogsFolderPath?.TrimEnd(System.IO.Path.DirectorySeparatorChar);
+        var initial = _initialLogsPath?.TrimEnd(System.IO.Path.DirectorySeparatorChar);
+
+        if (!string.Equals(current, initial, StringComparison.OrdinalIgnoreCase))
+        {
+            LogsRestartMessage = "Restart required to apply changes.";
+        }
+        else
+        {
+            LogsRestartMessage = string.Empty;
+        }
+    }
 
     private async Task BrowseWatchFolderAsync()
     {
