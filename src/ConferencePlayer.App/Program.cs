@@ -2,9 +2,6 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using Avalonia;
-#if !PORTABLE
-using Velopack;
-#endif
 using ConferencePlayer.Core;
 
 namespace ConferencePlayer;
@@ -16,15 +13,6 @@ internal static class Program
     {
         try
         {
-#if !PORTABLE
-            // Only run Velopack if NOT in portable mode.
-            if (!PathHelpers.IsPortable)
-            {
-                // Velopack must run as early as possible so it can handle install/update hooks.
-                VelopackApp.Build().Run();
-            }
-#endif
-
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
         }

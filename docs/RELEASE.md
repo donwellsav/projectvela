@@ -1,13 +1,6 @@
-# Release / Installer (Velopack)
+# Release (Portable)
 
-This repo uses Velopack for creating a per-user Windows installer.
-
-## One-time setup (on your machine)
-
-1. Install .NET SDK (see START_HERE.md).
-2. Install the Velopack CLI tool:
-
-   `dotnet tool install -g vpk`
+This repo produces a **portable** (zip) distribution. It does **not** use an installer or auto-updater.
 
 ## Build + publish (win-x64)
 
@@ -17,37 +10,21 @@ From repo root:
 
 This creates a `publish/` folder containing the app build output.
 
-## Package with Velopack
+## Package (Portable Zip)
 
-1. `powershell -ExecutionPolicy Bypass -File .\scripts\pack-velopack.ps1 -Version <VERSION>`
+The publish script above automatically creates a zip file if you are using the standard CI workflow, or you can manually zip the `publish` folder.
 
-   Use your chosen app version, e.g. `-Version 1.0.0`.
+To create a clean portable release:
 
-This creates a `Releases/` folder containing (names depend on PackId and version):
-
-- `ProjectVela-Setup.exe` (installer)
-- `ProjectVela-Portable.zip` (portable)
-- `ProjectVela-<version>-full.nupkg` (full package)
+1. Run the publish script.
+2. Navigate to `publish/`.
+3. Zip the contents.
+4. Distribute the zip file.
 
 ## Offline distribution
 
-If you do not want auto-update:
+The app is fully offline.
 
-- Distribute only the `*-Setup.exe` installer (and/or the portable zip).
-- Do not host any update feed.
-- Do not add UpdateManager network calls in the app.
-
-## Code signing (recommended for real users)
-
-See Velopack docs for signing support.
-
-## Release via GitHub Actions
-
-This repository includes a workflow to build releases automatically.
-
-1. Go to the **Actions** tab on GitHub.
-2. Select **Release (Velopack)** from the sidebar.
-3. Click **Run workflow**.
-4. Enter the version (e.g., `1.0.0`) and click **Run workflow**.
-5. Once the run completes, click on the run to view details.
-6. Under **Artifacts**, download `velopack-release`.
+- Distribute the portable zip.
+- No update checks are performed.
+- No network calls are made.

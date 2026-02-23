@@ -266,6 +266,19 @@ public sealed class ControlViewModel : ObservableObject
         }
     }
 
+    public bool IsLooping
+    {
+        get => _settings.LoopPlaylist;
+        set
+        {
+            if (_settings.LoopPlaylist != value)
+            {
+                _settings.LoopPlaylist = value;
+                Raise();
+            }
+        }
+    }
+
     public bool IsPanic
     {
         get => _isPanic;
@@ -385,6 +398,26 @@ public sealed class ControlViewModel : ObservableObject
         _logger.Info($"AddFiles: added={added}");
     }
 
+    public void Shutdown()
+    {
+        if (!_settings.PersistPlaylist) return;
+
+        var state = new PlaylistState
+        {
+            Items = Playlist.Select(x => x.FilePath).ToList(),
+            SelectedIndex = SelectedItem != null ? Playlist.IndexOf(SelectedItem) : -1,
+            // Get time in seconds. Time is ms.
+            PositionSeconds = _playback.MediaPlayer.Time > 0 ? _playback.MediaPlayer.Time / 1000.0 : 0.0
+        };
+
+        _playlistStore.Save(state, _logger);
+    }
+
+    public void SaveState()
+    {
+        SavePlaylistIfEnabled();
+    }
+
     private async Task LoadDurationAsync(PlaylistItemViewModel item)
     {
         try
@@ -413,7 +446,15 @@ public sealed class ControlViewModel : ObservableObject
         if (!_settings.PersistPlaylist)
             return;
 
-        await _playlistStore.SaveAsync(Playlist.Select(x => x.Model).ToList(), _logger);
+        var state = new PlaylistState
+        {
+            Items = Playlist.Select(x => x.FilePath).ToList(),
+            SelectedIndex = SelectedItem != null ? Playlist.IndexOf(SelectedItem) : -1,
+            // Get time in seconds. Time is ms.
+            PositionSeconds = _playback.MediaPlayer.Time > 0 ? _playback.MediaPlayer.Time / 1000.0 : 0.0
+        };
+
+        await _playlistStore.SaveAsync(state, _logger);
     }
 
     private void LoadPlaylistIfEnabled()
@@ -421,12 +462,29 @@ public sealed class ControlViewModel : ObservableObject
         if (!_settings.PersistPlaylist)
             return;
 
-        var items = _playlistStore.Load(_logger);
-        if (items.Count == 0)
+        var state = _playlistStore.Load(_logger);
+        if (state.Items == null || state.Items.Count == 0)
             return;
 
         // Don't re-save while loading.
-        AddFiles(items.Select(x => x.FilePath), saveAfter: false);
+        AddFiles(state.Items, saveAfter: false);
+
+        // Restore selection
+        if (state.SelectedIndex >= 0 && state.SelectedIndex < Playlist.Count)
+        {
+            SelectedItem = Playlist[state.SelectedIndex];
+
+            // Restore position if applicable
+            if (SelectedItem != null && state.PositionSeconds > 0)
+            {
+                // Load paused
+                _playback.Load(SelectedItem.FilePath, autoPlay: false);
+                // Seek
+                var timeMs = (long)(state.PositionSeconds * 1000);
+                _playback.MediaPlayer.Time = timeMs;
+                StatusText = $"Restored: {SelectedItem.Name} @ {TimeSpan.FromSeconds(state.PositionSeconds):mm\\:ss}";
+            }
+        }
     }
 
     private async Task AddFilesAsync()
@@ -521,6 +579,7 @@ public sealed class ControlViewModel : ObservableObject
         if (_playback.State == PlaybackState.Playing)
         {
             _playback.Pause();
+            SavePlaylistIfEnabled();
         }
         else
         {
@@ -532,6 +591,7 @@ public sealed class ControlViewModel : ObservableObject
     {
         _playback.Stop();
         StatusText = "Stopped";
+        SavePlaylistIfEnabled();
     }
 
     private bool NextInternal()
@@ -736,6 +796,7 @@ public sealed class ControlViewModel : ObservableObject
                 Raise(nameof(IsPreviewAudioEnabled));
                 Raise(nameof(IsPreviewCueNext));
                 Raise(nameof(IsPreviewCueSelected));
+                Raise(nameof(IsLooping));
                 CueNextPreview();
                 _controlWindow.ApplyHotkeys(_settings);
             }

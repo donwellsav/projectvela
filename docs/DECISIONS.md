@@ -17,7 +17,7 @@ Product name: **Project Vela**.
 - .NET (C#)
 - Avalonia UI (cross-platform UI with Windows look + Fluent theme)
 - LibVLCSharp (playback engine)
-- Velopack (per-user installer)
+- Manual portable build (no installer)
 
 ## Non-negotiable constraints (from your answers)
 
