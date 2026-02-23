@@ -149,6 +149,48 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
         }
     }
 
+    public void Seek(TimeSpan time)
+    {
+        try
+        {
+            if (time < TimeSpan.Zero) time = TimeSpan.Zero;
+            var ms = (long)time.TotalMilliseconds;
+
+            // Clamp to duration if known
+            var length = MediaPlayer.Length;
+            if (length > 0 && ms > length)
+                ms = length;
+
+            MediaPlayer.Time = ms;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Seek failed: {time}", ex);
+        }
+    }
+
+    public void SeekRelative(TimeSpan offset)
+    {
+        try
+        {
+            var current = MediaPlayer.Time;
+            if (current < 0) return; // Not playing or invalid
+
+            var target = current + (long)offset.TotalMilliseconds;
+            if (target < 0) target = 0;
+
+            var length = MediaPlayer.Length;
+            if (length > 0 && target > length)
+                target = length;
+
+            MediaPlayer.Time = target;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"SeekRelative failed: {offset}", ex);
+        }
+    }
+
     public void SetMute(bool mute)
     {
         try

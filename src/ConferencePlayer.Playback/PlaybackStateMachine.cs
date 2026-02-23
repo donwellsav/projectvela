@@ -102,6 +102,18 @@ public sealed class PlaybackStateMachine : IDisposable
         _engine.NextFrame();
     }
 
+    public void Seek(TimeSpan time)
+    {
+        if (_isPanic) return;
+        _engine.Seek(time);
+    }
+
+    public void SeekRelative(TimeSpan offset)
+    {
+        if (_isPanic) return;
+        _engine.SeekRelative(offset);
+    }
+
     public void TogglePanic()
     {
         if (_isPanic)

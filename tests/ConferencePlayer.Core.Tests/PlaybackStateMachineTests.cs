@@ -34,6 +34,13 @@ public class PlaybackStateMachineTests
         public void Stop() => SetState(PlaybackState.Stopped);
         public void SetRate(float rate) => Rate = rate;
         public void NextFrame() { }
+
+        public TimeSpan LastSeekTime { get; private set; }
+        public void Seek(TimeSpan time) => LastSeekTime = time;
+
+        public TimeSpan LastSeekRelativeOffset { get; private set; }
+        public void SeekRelative(TimeSpan offset) => LastSeekRelativeOffset = offset;
+
         public void SetMute(bool mute) => IsMuted = mute;
 
         public void SimulateError(string msg) => PlaybackError?.Invoke(this, msg);
@@ -114,5 +121,47 @@ public class PlaybackStateMachineTests
 
         Assert.False(sm.IsPanic);
         Assert.False(output.IsBlackout);
+    }
+
+    [Fact]
+    public void Seek_ShouldBeIgnored_DuringPanic()
+    {
+        var engine = new MockEngine();
+        var output = new MockOutput();
+        var prompts = new MockPrompts();
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
+
+        sm.TogglePanic();
+        sm.Seek(TimeSpan.FromSeconds(10));
+
+        Assert.Equal(TimeSpan.Zero, engine.LastSeekTime); // Default value, meaning not called
+    }
+
+    [Fact]
+    public void SeekRelative_ShouldBeIgnored_DuringPanic()
+    {
+        var engine = new MockEngine();
+        var output = new MockOutput();
+        var prompts = new MockPrompts();
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
+
+        sm.TogglePanic();
+        sm.SeekRelative(TimeSpan.FromSeconds(10));
+
+        Assert.Equal(TimeSpan.Zero, engine.LastSeekRelativeOffset);
+    }
+
+    [Fact]
+    public void Seek_ShouldDelegateToEngine()
+    {
+        var engine = new MockEngine();
+        var output = new MockOutput();
+        var prompts = new MockPrompts();
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
+
+        var time = TimeSpan.FromSeconds(50);
+        sm.Seek(time);
+
+        Assert.Equal(time, engine.LastSeekTime);
     }
 }

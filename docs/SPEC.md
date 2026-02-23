@@ -28,10 +28,12 @@ Two-window model:
 - R1.2 Must be stable: **never crash**. On error: the *Playback State Machine* must immediately transition to an **Error** state, force the output to **black** (via `IOutputController`), log the error, and then prompt the operator for action (Retry/Skip/Stop).
 - R1.3 Transport:
   - Play/Pause
-  - Stop
-  - Next/Prev
-  - Playback speed
+  - Stop (Hotkey: S)
+  - Next/Prev (Standard transport: Plays next/prev item immediately)
+  - Select Next/Prev (Operator cueing: Selects item without playing, updates preview)
+  - Playback speed (Hotkeys: [ Decrease, ] Increase)
   - Frame-step forward
+  - Seek Forward/Back (10s) (Hotkeys: Shift+Right / Shift+Left)
 - R1.4 Hotkeys only work when the app is focused.
 
 ### R2. Playlist
