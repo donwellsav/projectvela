@@ -45,7 +45,7 @@ public sealed class SettingsViewModel : ObservableObject
         _display.ScreensChanged += (_, __) => Dispatcher.UIThread.Post(RefreshScreens);
 
         BrowseWatchFolderCommand = new RelayCommand(async () => await BrowseWatchFolderAsync());
-        SaveCommand = new RelayCommand(Save);
+        SaveCommand = new RelayCommand(async () => await SaveAsync());
         CancelCommand = new RelayCommand(() => RequestClose?.Invoke(this, EventArgs.Empty));
     }
 
@@ -212,13 +212,13 @@ public sealed class SettingsViewModel : ObservableObject
         return true;
     }
 
-    private void Save()
+    private async Task SaveAsync()
     {
         if (!ValidateAllHotkeys())
             return;
 
         // NOTE (v1): watched-folder filtering UI is deferred.
-        _settingsStore.Save(_settings, _logger);
+        await _settingsStore.SaveAsync(_settings, _logger);
 
         // Apply folder watch settings.
         try

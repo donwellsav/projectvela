@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace ConferencePlayer.Core;
 
@@ -60,6 +61,31 @@ public sealed class PlaylistStore
 
             var json = JsonSerializer.Serialize(paths, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(_playlistFilePath, json);
+
+            logger.Info($"Playlist saved: {paths.Count} items");
+        }
+        catch (Exception ex)
+        {
+            logger.Error($"Failed to save playlist: {_playlistFilePath}", ex);
+        }
+    }
+
+    public async Task SaveAsync(IEnumerable<PlaylistItem> playlist, AppLogger logger)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(_playlistFilePath);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
+
+            var paths = playlist
+                .Select(x => x.FilePath)
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var json = JsonSerializer.Serialize(paths, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(_playlistFilePath, json);
 
             logger.Info($"Playlist saved: {paths.Count} items");
         }

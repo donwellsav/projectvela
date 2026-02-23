@@ -337,12 +337,12 @@ public sealed class ControlViewModel : ObservableObject
         }
     }
 
-    private void SavePlaylistIfEnabled()
+    private async void SavePlaylistIfEnabled()
     {
         if (!_settings.PersistPlaylist)
             return;
 
-        _playlistStore.Save(Playlist.Select(x => x.Model).ToList(), _logger);
+        await _playlistStore.SaveAsync(Playlist.Select(x => x.Model).ToList(), _logger);
     }
 
     private void LoadPlaylistIfEnabled()
