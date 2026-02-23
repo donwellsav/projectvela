@@ -117,7 +117,9 @@ public partial class ControlWindow : Window, IControlWindow
 
             if (control.DataContext is PlaylistItemViewModel item)
             {
+#pragma warning disable CS0618
                 var data = new DataObject();
+#pragma warning restore CS0618
                 data.Set(PlaylistItemFormat, item);
 
                 // Start Drag
