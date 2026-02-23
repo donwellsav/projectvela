@@ -20,6 +20,7 @@ public class PlaybackStateMachineSequenceTests
         }
 
         public MediaPlayer MediaPlayer => throw new NotImplementedException();
+        public long Time => 0;
         public PlaybackState State { get; private set; } = PlaybackState.Idle;
         public bool IsMuted { get; private set; }
         public float Rate { get; private set; } = 1.0f;

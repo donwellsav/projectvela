@@ -40,7 +40,11 @@ Two-window model:
 ### R2. Playlist
 
 - R2.1 Playlist UI, drag-and-drop files, add files/folder, remove/clear.
-- R2.2 Folder watch: watch a local folder and auto-add new media files (including subfolders).
+- R2.2 Folder watch: watch a local folder and auto-add new media files.
+  - R2.2.1 Subfolders included (manual recursion, max depth 20).
+  - R2.2.2 Add-only behavior: new files are added; deleted files are NOT removed from playlist.
+  - R2.2.3 Robust scanning: gracefully skips inaccessible folders (Access Denied).
+  - R2.2.4 No filter UI: hardcoded extension list only.
 - R2.3 Auto-advance when media ends (default ON).
 - R2.4 End-of-playlist behavior:
   - Default: stop at end

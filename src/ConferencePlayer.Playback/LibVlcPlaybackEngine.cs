@@ -14,6 +14,8 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
 
     public PlaybackState State { get; private set; } = PlaybackState.Idle;
 
+    public long Time => MediaPlayer.Time;
+
     public bool IsMuted => MediaPlayer.Mute;
 
     public float Rate => MediaPlayer.Rate;
