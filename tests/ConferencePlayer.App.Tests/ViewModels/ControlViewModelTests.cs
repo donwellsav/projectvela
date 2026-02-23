@@ -25,6 +25,7 @@ public class ControlViewModelTests
     private readonly Mock<IUserPromptService> _mockPromptService;
     private readonly Mock<IFileDialogService> _mockFileDialogs;
     private readonly Mock<IDisplayService> _mockDisplayService;
+    private readonly Mock<IOsExplorerService> _mockOsExplorer;
 
     private readonly AppLogger _logger;
     private readonly AppSettings _settings;
@@ -52,6 +53,7 @@ public class ControlViewModelTests
         _mockPromptService = new Mock<IUserPromptService>();
         _mockFileDialogs = new Mock<IFileDialogService>();
         _mockDisplayService = new Mock<IDisplayService>();
+        _mockOsExplorer = new Mock<IOsExplorerService>();
         _mockDisplayService.Setup(x => x.GetAllScreens()).Returns(new List<Screen>());
         _mockDisplayService.Setup(x => x.GetPrimary()).Returns((Screen?)null);
 
@@ -91,6 +93,7 @@ public class ControlViewModelTests
             _folderWatch,
             _mockFileDialogs.Object,
             _mockDisplayService.Object,
+            _mockOsExplorer.Object,
             null!);
     }
 
