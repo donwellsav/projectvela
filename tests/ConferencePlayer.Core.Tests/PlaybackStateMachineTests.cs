@@ -86,8 +86,10 @@ public class PlaybackStateMachineTests
     private class MockPrompts : IUserPromptService
     {
         public UserChoice NextChoice { get; set; } = UserChoice.Stop;
+        public bool ShouldThrow { get; set; }
         public Task<UserChoice> ShowPlaybackErrorAsync(string message, string? details)
         {
+            if (ShouldThrow) throw new Exception("Simulated prompt failure");
             return Task.FromResult(NextChoice);
         }
     }
@@ -284,5 +286,28 @@ public class PlaybackStateMachineTests
         Assert.False(sm.IsPanic);
         Assert.False(output.IsBlackout);
         Assert.Equal(PlaybackState.Playing, engine.State);
+    }
+
+    [Fact]
+    public async Task Error_ShouldFallbackToStop_WhenPromptServiceThrows()
+    {
+        var engine = new MockEngine();
+        var output = new MockOutput();
+        var prompts = new MockPrompts { ShouldThrow = true };
+        var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
+
+        // Initial load to have a state
+        sm.Load("test.mp4", true);
+        Assert.Equal(PlaybackState.Playing, engine.State);
+
+        // Simulate engine error which triggers OnEngineError
+        // We use Task.Delay because OnEngineError is async void
+        engine.SimulateError("Critical failure");
+
+        await Task.Delay(100); // Give it a moment to process async void
+
+        // Should fallback to UserChoice.Stop
+        Assert.True(output.IsBlackout);
+        Assert.Equal(PlaybackState.Stopped, engine.State);
     }
 }
