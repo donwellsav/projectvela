@@ -1,4 +1,4 @@
-namespace ConferencePlayer.Services;
+namespace ConferencePlayer.Core;
 
 public enum UserChoice
 {

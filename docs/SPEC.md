@@ -25,7 +25,7 @@ Two-window model:
 ### R1. Playback
 
 - R1.1 Plays local media files (offline, no network).
-- R1.2 Must be stable: **never crash**. On error: show an operator-visible error, keep output black, and write logs.
+- R1.2 Must be stable: **never crash**. On error: the *Playback State Machine* must immediately transition to an **Error** state, force the output to **black** (via `IOutputController`), log the error, and then prompt the operator for action (Retry/Skip/Stop).
 - R1.3 Transport:
   - Play/Pause
   - Stop
@@ -58,7 +58,7 @@ Two-window model:
 
 - R4.1 Panic hotkey + UI button.
 - R4.2 While panic is active:
-  - Output is black.
+  - The *Playback State Machine* enforces output is **black** (via `IOutputController`).
   - Audio is muted by default (toggle in settings).
   - Playback is paused (safety posture).
 - R4.3 Leaving panic:

@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using ConferencePlayer.Views;
+using ConferencePlayer.Core;
 
 namespace ConferencePlayer.Services;
 
@@ -15,7 +17,16 @@ public sealed class AvaloniaUserPromptService : IUserPromptService
 
     public async Task<UserChoice> ShowPlaybackErrorAsync(string message, string? details)
     {
-        var dialog = new PromptDialog(message, details);
-        return await dialog.ShowDialog<UserChoice>(_owner);
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            var dialog = new PromptDialog(message, details);
+            return await dialog.ShowDialog<UserChoice>(_owner);
+        }
+
+        return await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var dialog = new PromptDialog(message, details);
+            return await dialog.ShowDialog<UserChoice>(_owner);
+        });
     }
 }
