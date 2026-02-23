@@ -83,8 +83,17 @@ public sealed class ControlViewModel : ObservableObject
         PlaySelectedCommand = new RelayCommand(PlaySelected, () => SelectedItem != null);
         TogglePlayPauseCommand = new RelayCommand(TogglePlayPause);
         StopCommand = new RelayCommand(Stop);
-        NextCommand = new RelayCommand(Next);
-        PrevCommand = new RelayCommand(Prev);
+
+        SelectNextCommand = new RelayCommand(SelectNext);
+        SelectPrevCommand = new RelayCommand(SelectPrev);
+        PlayNextCommand = new RelayCommand(PlayNext);
+        PlayPrevCommand = new RelayCommand(PlayPrev);
+
+        SeekForwardCommand = new RelayCommand(SeekForward);
+        SeekBackCommand = new RelayCommand(SeekBack);
+        IncreaseSpeedCommand = new RelayCommand(IncreaseSpeed);
+        DecreaseSpeedCommand = new RelayCommand(DecreaseSpeed);
+
         FrameStepCommand = new RelayCommand(FrameStep);
         PanicCommand = new RelayCommand(TogglePanic);
         OpenSettingsCommand = new RelayCommand(OpenSettings);
@@ -173,6 +182,7 @@ public sealed class ControlViewModel : ObservableObject
             {
                 RemoveSelectedCommand.RaiseCanExecuteChanged();
                 PlaySelectedCommand.RaiseCanExecuteChanged();
+                CueNextPreview();
             }
         }
     }
@@ -230,8 +240,17 @@ public sealed class ControlViewModel : ObservableObject
     public RelayCommand PlaySelectedCommand { get; }
     public RelayCommand TogglePlayPauseCommand { get; }
     public RelayCommand StopCommand { get; }
-    public RelayCommand NextCommand { get; }
-    public RelayCommand PrevCommand { get; }
+
+    public RelayCommand SelectNextCommand { get; }
+    public RelayCommand SelectPrevCommand { get; }
+    public RelayCommand PlayNextCommand { get; }
+    public RelayCommand PlayPrevCommand { get; }
+
+    public RelayCommand SeekForwardCommand { get; }
+    public RelayCommand SeekBackCommand { get; }
+    public RelayCommand IncreaseSpeedCommand { get; }
+    public RelayCommand DecreaseSpeedCommand { get; }
+
     public RelayCommand FrameStepCommand { get; }
     public RelayCommand PanicCommand { get; }
     public RelayCommand OpenSettingsCommand { get; }
@@ -445,9 +464,15 @@ public sealed class ControlViewModel : ObservableObject
         return true;
     }
 
-    private void Next()
+    private void SelectNext()
     {
         NextInternal();
+    }
+
+    private void PlayNext()
+    {
+        if (NextInternal())
+            PlaySelected();
     }
 
     private bool PrevInternal()
@@ -467,9 +492,33 @@ public sealed class ControlViewModel : ObservableObject
         return true;
     }
 
-    private void Prev()
+    private void SelectPrev()
     {
         PrevInternal();
+    }
+
+    private void PlayPrev()
+    {
+        if (PrevInternal())
+            PlaySelected();
+    }
+
+    private void SeekForward() => _playback.SeekRelative(TimeSpan.FromSeconds(10));
+
+    private void SeekBack() => _playback.SeekRelative(TimeSpan.FromSeconds(-10));
+
+    private void IncreaseSpeed()
+    {
+        var idx = AvailableSpeeds.IndexOf(SelectedSpeed);
+        if (idx >= 0 && idx < AvailableSpeeds.Count - 1)
+            SelectedSpeed = AvailableSpeeds[idx + 1];
+    }
+
+    private void DecreaseSpeed()
+    {
+        var idx = AvailableSpeeds.IndexOf(SelectedSpeed);
+        if (idx > 0)
+            SelectedSpeed = AvailableSpeeds[idx - 1];
     }
 
     private void FrameStep()

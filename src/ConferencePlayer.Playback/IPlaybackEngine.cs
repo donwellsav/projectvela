@@ -26,5 +26,11 @@ public interface IPlaybackEngine : IDisposable
     /// <summary>Advance by one frame (best-effort; codec-dependent).</summary>
     void NextFrame();
 
+    /// <summary>Seeks to a specific time.</summary>
+    void Seek(TimeSpan time);
+
+    /// <summary>Seeks relative to the current position.</summary>
+    void SeekRelative(TimeSpan offset);
+
     void SetMute(bool mute);
 }
