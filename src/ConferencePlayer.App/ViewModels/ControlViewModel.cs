@@ -525,11 +525,14 @@ public sealed class ControlViewModel : ObservableObject
             var option = _settings.IncludeSubfolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
             var filter = new MediaFileFilter(_settings);
 
-            var files = Directory
-                .EnumerateFiles(folder, "*.*", option)
-                .Where(filter.IsAllowed)
-                .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            var files = await Task.Run(() =>
+            {
+                return Directory
+                    .EnumerateFiles(folder, "*.*", option)
+                    .Where(filter.IsAllowed)
+                    .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            });
 
             AddFiles(files);
         }
