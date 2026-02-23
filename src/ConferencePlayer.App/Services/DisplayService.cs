@@ -5,7 +5,7 @@ using Avalonia.Platform;
 
 namespace ConferencePlayer.Services;
 
-public sealed class DisplayService : IDisposable
+public sealed class DisplayService : IDisplayService
 {
     private readonly Window _windowWithScreens;
 

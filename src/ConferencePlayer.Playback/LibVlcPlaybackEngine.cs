@@ -62,15 +62,42 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
         try
         {
             using var media = new Media(_libVlc, filePath, FromType.FromPath);
-            // If autoPlay is false, we still call Play() then immediately Pause()
-            // because LibVLC doesn't reliably "load but not play" across formats.
-            // This approach is common in LibVLC apps; tune later if needed.
-            MediaPlayer.Play(media);
 
             if (!autoPlay)
-                MediaPlayer.Pause();
+            {
+                // "Mute & Flag" strategy for seamless preview loading:
+                // 1. Force mute (safety against audio blips).
+                // 2. Use :start-paused option (primary mechanism).
+                // 3. Restore original mute state once strictly paused.
+                var originalMute = MediaPlayer.Mute;
+                MediaPlayer.Mute = true;
+                media.AddOption(":start-paused");
 
-            _logger.Info($"Loaded media: {filePath}");
+                // Restore mute on first Pause event (or Error)
+                void RestoreMuteHandler(object? sender, EventArgs e)
+                {
+                    MediaPlayer.Paused -= RestoreMuteHandler;
+                    MediaPlayer.EncounteredError -= RestoreMuteHandler;
+                    try
+                    {
+                        MediaPlayer.Mute = originalMute;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error("Failed to restore mute state after load", ex);
+                    }
+                }
+
+                MediaPlayer.Paused += RestoreMuteHandler;
+                MediaPlayer.EncounteredError += RestoreMuteHandler;
+                MediaPlayer.Play(media);
+            }
+            else
+            {
+                MediaPlayer.Play(media);
+            }
+
+            _logger.Info($"Loaded media: {filePath} (autoPlay={autoPlay})");
         }
         catch (Exception ex)
         {
