@@ -45,6 +45,11 @@ public sealed class ControlViewModel : ObservableObject
 
     private float _selectedSpeed = 1.0f;
 
+    private string _currentTime = "00:00:00";
+    private string _nextItemText = "NEXT: (none)";
+    private string _systemStatusText = "System: OK";
+    private readonly DispatcherTimer _clockTimer;
+
     public ControlViewModel(
         IControlWindow controlWindow,
         IOutputWindow outputWindow,
@@ -76,6 +81,7 @@ public sealed class ControlViewModel : ObservableObject
         _osExplorer = osExplorer;
 
         Playlist = new ObservableCollection<PlaylistItemViewModel>();
+        Playlist.CollectionChanged += (s, e) => Dispatcher.UIThread.Post(UpdateNextItemText);
 
         AvailableSpeeds = new ObservableCollection<float>(new[]
         {
@@ -191,6 +197,14 @@ public sealed class ControlViewModel : ObservableObject
             _folderWatch.Start();
             _ = _folderWatch.ScanExistingAsync();
         }
+
+        // Clock Timer
+        _clockTimer = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Normal, (s, e) =>
+        {
+            CurrentTime = DateTime.Now.ToString("HH:mm:ss");
+        });
+        _clockTimer.Start();
+        CurrentTime = DateTime.Now.ToString("HH:mm:ss");
     }
 
     public ObservableCollection<PlaylistItemViewModel> Playlist { get; }
@@ -205,8 +219,27 @@ public sealed class ControlViewModel : ObservableObject
                 RemoveSelectedCommand.RaiseCanExecuteChanged();
                 PlaySelectedCommand.RaiseCanExecuteChanged();
                 CueNextPreview();
+                UpdateNextItemText();
             }
         }
+    }
+
+    public string CurrentTime
+    {
+        get => _currentTime;
+        private set => Set(ref _currentTime, value);
+    }
+
+    public string NextItemText
+    {
+        get => _nextItemText;
+        private set => Set(ref _nextItemText, value);
+    }
+
+    public string SystemStatusText
+    {
+        get => _systemStatusText;
+        private set => Set(ref _systemStatusText, value);
     }
 
     public string StatusText
@@ -722,8 +755,24 @@ public sealed class ControlViewModel : ObservableObject
         return Playlist[idx + 1];
     }
 
+    private void UpdateNextItemText()
+    {
+        var next = GetNextItemForPreview();
+        if (next != null)
+        {
+            // E.g. "NEXT: MyPresentation.mp4 (05:00)"
+            NextItemText = $"NEXT: {next.Name} ({next.Duration})";
+        }
+        else
+        {
+            NextItemText = "NEXT: (none)";
+        }
+    }
+
     private void CueNextPreview()
     {
+        UpdateNextItemText();
+
         if (!_settings.EnablePreviewWindow)
             return;
 

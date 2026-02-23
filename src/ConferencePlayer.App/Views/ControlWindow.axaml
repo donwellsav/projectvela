@@ -5,13 +5,47 @@
         x:Class="ConferencePlayer.Views.ControlWindow"
         x:DataType="vm:ControlViewModel"
         Title="{Binding WindowTitle}"
-        Width="1200" Height="800"
-        FontSize="16"
-        WindowStartupLocation="CenterScreen">
+        Width="1280" Height="800"
+        FontSize="14"
+        WindowStartupLocation="CenterScreen"
+        Background="#121212"
+        Foreground="#E0E0E0">
 
-  <Grid RowDefinitions="Auto, *, Auto">
-    <!-- 1. Top Menu -->
-    <Menu Grid.Row="0">
+  <Window.KeyBindings>
+      <!-- Remote Toggle for Output Window -->
+      <KeyBinding Gesture="Escape" Command="{Binding ToggleFullscreenCommand}" />
+  </Window.KeyBindings>
+
+  <Window.Styles>
+      <!-- Modern Button Style -->
+      <Style Selector="Button">
+          <Setter Property="CornerRadius" Value="4"/>
+          <Setter Property="Background" Value="#333"/>
+          <Setter Property="Foreground" Value="White"/>
+          <Setter Property="BorderThickness" Value="1"/>
+          <Setter Property="BorderBrush" Value="#444"/>
+      </Style>
+      <Style Selector="Button:pointerover /template/ ContentPresenter">
+          <Setter Property="Background" Value="#444"/>
+      </Style>
+      <Style Selector="Button:pressed /template/ ContentPresenter">
+          <Setter Property="Background" Value="#222"/>
+      </Style>
+
+      <!-- Card Style -->
+      <Style Selector="Border.Card">
+          <Setter Property="Background" Value="#1E1E1E"/>
+          <Setter Property="CornerRadius" Value="6"/>
+          <Setter Property="BorderBrush" Value="#333"/>
+          <Setter Property="BorderThickness" Value="1"/>
+          <Setter Property="Padding" Value="10"/>
+      </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto, Auto, *, 300">
+
+    <!-- 1. Menu Bar -->
+    <Menu Grid.Row="0" Background="#1E1E1E">
       <MenuItem Header="_File">
         <MenuItem Header="Add _Files..." Command="{Binding AddFilesCommand}" InputGesture="Ctrl+O"/>
         <MenuItem Header="Add F_older..." Command="{Binding AddFolderCommand}" InputGesture="Ctrl+Shift+O"/>
@@ -29,51 +63,210 @@
       </MenuItem>
     </Menu>
 
-    <!-- 2. Main Content (Split: Playlist | Sidebar) -->
-    <Grid Grid.Row="1" ColumnDefinitions="*, 4, 400">
+    <!-- 2. Safety Strip (Panic, Clock, Next Item) -->
+    <Border Grid.Row="1" Background="#000000" Padding="10" BorderBrush="#333" BorderThickness="0,0,0,1">
+        <Grid ColumnDefinitions="Auto, *, Auto">
+            <!-- Panic Button (Left) -->
+            <Button Grid.Column="0"
+                    Content="{Binding PanicButtonText}"
+                    Command="{Binding PanicCommand}"
+                    Background="{Binding PanicButtonColor}"
+                    Foreground="White"
+                    FontWeight="Bold"
+                    FontSize="18"
+                    Padding="20,10"
+                    CornerRadius="6"
+                    BorderThickness="0"/>
 
-      <!-- Playlist (Left) -->
-      <DockPanel Grid.Column="0" Margin="10,10,0,10">
-        <!-- Toolbar -->
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,5" Spacing="10">
-            <Button Command="{Binding AddFilesCommand}" ToolTip.Tip="Browse media files" Height="40">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <PathIcon Data="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z"
-                              Width="24" Height="24"/>
-                    <TextBlock Text="Add Files" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-            <Button Command="{Binding AddFolderCommand}" ToolTip.Tip="Browse folder" Height="40">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <PathIcon Data="M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,6 20,6Z"
-                              Width="24" Height="24"/>
-                    <TextBlock Text="Add Folder" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-        </StackPanel>
+            <!-- Center Info (Clock & Next Item) -->
+            <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="5">
+                <!-- Digital Clock -->
+                <TextBlock Text="{Binding CurrentTime}"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#4CAF50"
+                           HorizontalAlignment="Center"
+                           FontFamily="Consolas, Monospace"/>
 
-        <!-- Header -->
-        <Border DockPanel.Dock="Top" Background="#333" Padding="8,8" CornerRadius="4,4,0,0">
-            <Grid ColumnDefinitions="*, 120, 120">
-                <TextBlock Text="Name" FontWeight="Bold"/>
-                <TextBlock Grid.Column="1" Text="Duration" FontWeight="Bold"/>
-                <TextBlock Grid.Column="2" Text="Status" FontWeight="Bold"/>
+                <!-- Next Item Marquee -->
+                <TextBlock Text="{Binding NextItemText}"
+                           FontSize="14"
+                           Opacity="0.8"
+                           HorizontalAlignment="Center"
+                           Foreground="#81D4FA"/>
+            </StackPanel>
+
+            <!-- System Status (Right) -->
+            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="5">
+                <TextBlock Text="{Binding SystemStatusText}"
+                           FontSize="14"
+                           Foreground="#AAAAAA"
+                           HorizontalAlignment="Right"/>
+                <TextBlock Text="{Binding StatusText}"
+                           FontSize="12"
+                           Foreground="#666"
+                           HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis"
+                           MaxWidth="200"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+
+    <!-- 3. Decks (Preview & Main) -->
+    <Grid Grid.Row="2" ColumnDefinitions="*, 8, *" Margin="10">
+
+        <!-- LEFT: Preview Deck -->
+        <Border Grid.Column="0" Classes="Card">
+            <Grid RowDefinitions="Auto, *, Auto">
+                <TextBlock Grid.Row="0" Text="PREVIEW MONITOR" FontWeight="Bold" Foreground="#888" Margin="0,0,0,10"/>
+
+                <!-- Video Preview -->
+                <Border Grid.Row="1" Background="Black" CornerRadius="4" ClipToBounds="True" Margin="0,0,0,10">
+                    <vlc:VideoView Name="PreviewVideoView"/>
+                </Border>
+
+                <!-- Preview Controls -->
+                <StackPanel Grid.Row="2" Spacing="10">
+                    <!-- Transport -->
+                    <Grid ColumnDefinitions="*, *, *, Auto">
+                        <Button Grid.Column="0" Content="PLAY" Command="{Binding PlayPreviewCommand}" HorizontalAlignment="Stretch" Margin="0,0,2,0" Background="#2E7D32"/>
+                        <Button Grid.Column="1" Content="PAUSE" Command="{Binding PausePreviewCommand}" HorizontalAlignment="Stretch" Margin="2,0,2,0" Background="#F57F17"/>
+                        <Button Grid.Column="2" Content="STOP" Command="{Binding StopPreviewCommand}" HorizontalAlignment="Stretch" Margin="2,0,2,0" Background="#C62828"/>
+
+                        <ToggleButton Grid.Column="3" IsChecked="{Binding IsPreviewAudioEnabled}" Margin="5,0,0,0" ToolTip.Tip="Toggle Preview Audio" Padding="10,5">
+                            <TextBlock Text="🔊"/>
+                        </ToggleButton>
+                    </Grid>
+
+                    <!-- Cue Mode -->
+                    <Border Background="#252525" CornerRadius="4" Padding="5">
+                        <Grid ColumnDefinitions="Auto, *, *, Auto">
+                            <TextBlock Text="CUE:" VerticalAlignment="Center" Margin="5,0,10,0" Opacity="0.6" FontWeight="Bold"/>
+                            <RadioButton Grid.Column="1" Content="Next Item" GroupName="CueMode" IsChecked="{Binding IsPreviewCueNext}"/>
+                            <RadioButton Grid.Column="2" Content="Selected" GroupName="CueMode" IsChecked="{Binding IsPreviewCueSelected}"/>
+                            <Button Grid.Column="3" Content="RESET / LOAD" Command="{Binding CueNextPreviewCommand}" FontSize="12" Padding="8,4"/>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="{Binding PreviewStatusText}" Opacity="0.5" FontSize="12" HorizontalAlignment="Center"/>
+                </StackPanel>
             </Grid>
         </Border>
 
-        <!-- List -->
+        <!-- Splitter -->
+        <GridSplitter Grid.Column="1" Background="Transparent" ResizeDirection="Columns"/>
+
+        <!-- RIGHT: Main Control Deck -->
+        <Border Grid.Column="2" Classes="Card">
+            <Grid RowDefinitions="*, Auto">
+
+                <!-- Large Status Display -->
+                <Grid Grid.Row="0" RowDefinitions="*, Auto" Margin="0,0,0,20">
+                    <Border Grid.Row="0" Background="#111" CornerRadius="8" BorderBrush="#222" BorderThickness="1" Margin="20">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="MAIN OUTPUT" Opacity="0.3" HorizontalAlignment="Center" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding StatusText}"
+                                       FontSize="36"
+                                       FontWeight="Bold"
+                                       Foreground="#FFF"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,10"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Main Transport Controls -->
+                <StackPanel Grid.Row="1" Spacing="15">
+
+                    <!-- Primary Transport (Big Buttons) -->
+                    <Grid ColumnDefinitions="*, Auto, *">
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="15">
+                             <Button Command="{Binding StopCommand}" Width="100" Height="60" Background="#B71C1C" CornerRadius="8">
+                                 <StackPanel>
+                                     <PathIcon Data="M18,18H6V6H18V18Z" Width="24" Height="24" Foreground="White"/>
+                                     <TextBlock Text="STOP" HorizontalAlignment="Center" FontSize="10" Margin="0,2,0,0"/>
+                                 </StackPanel>
+                             </Button>
+
+                             <Button Command="{Binding TogglePlayPauseCommand}" Width="160" Height="60" Background="#1B5E20" CornerRadius="8" FontWeight="Bold" FontSize="18">
+                                 <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                                     <PathIcon Data="M8,5.14V19.14L19,12.14L8,5.14Z" Width="28" Height="28" Foreground="White"/>
+                                     <TextBlock Text="PLAY" VerticalAlignment="Center"/>
+                                 </StackPanel>
+                             </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Secondary Transport -->
+                    <Grid ColumnDefinitions="Auto, *, Auto" Margin="0,10">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5">
+                             <Button Content="Prev" Command="{Binding PlayPrevCommand}" Width="60"/>
+                             <Button Content="-10s" Command="{Binding SeekBackCommand}" Width="50"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                             <ToggleButton Content="Loop Playlist" IsChecked="{Binding IsLooping}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5">
+                             <Button Content="+10s" Command="{Binding SeekForwardCommand}" Width="50"/>
+                             <Button Content="Next" Command="{Binding PlayNextCommand}" Width="60"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Speed Control -->
+                     <Grid ColumnDefinitions="Auto, *, Auto">
+                          <Button Grid.Column="0" Content="-" Command="{Binding DecreaseSpeedCommand}" Width="40"/>
+                          <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableSpeeds}" SelectedItem="{Binding SelectedSpeed, Mode=TwoWay}" HorizontalAlignment="Stretch" Margin="5,0"/>
+                          <Button Grid.Column="2" Content="+" Command="{Binding IncreaseSpeedCommand}" Width="40"/>
+                     </Grid>
+
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
+
+    <!-- 4. Playlist (Bottom) -->
+    <DockPanel Grid.Row="3" Margin="10,0,10,10">
+        <!-- Toolbar -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,5" Spacing="10">
+            <Button Command="{Binding ClearPlaylistCommand}" Content="Clear Playlist" Background="#B71C1C"/>
+            <Button Command="{Binding AddFilesCommand}" Content="Add Files" Background="#0D47A1"/>
+            <Button Command="{Binding AddFolderCommand}" Content="Add Folder" Background="#0D47A1"/>
+        </StackPanel>
+
+        <!-- List Header -->
+        <Border DockPanel.Dock="Top" Background="#252525" Padding="10,8" CornerRadius="4,4,0,0" BorderBrush="#333" BorderThickness="1,1,1,0">
+            <Grid ColumnDefinitions="*, 120, 120">
+                <TextBlock Text="NAME" FontWeight="Bold" Opacity="0.7" FontSize="12"/>
+                <TextBlock Grid.Column="1" Text="DURATION" FontWeight="Bold" Opacity="0.7" FontSize="12"/>
+                <TextBlock Grid.Column="2" Text="STATUS" FontWeight="Bold" Opacity="0.7" FontSize="12"/>
+            </Grid>
+        </Border>
+
+        <!-- List Box -->
         <ListBox Name="PlaylistList"
                  ItemsSource="{Binding Playlist}"
                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                  DragDrop.AllowDrop="True"
                  DragDrop.DragOver="Playlist_DragOver"
                  DragDrop.Drop="Playlist_Drop"
-                 Background="Transparent"
+                 Background="#1E1E1E"
                  BorderThickness="1"
-                 BorderBrush="#333">
+                 BorderBrush="#333"
+                 CornerRadius="0,0,4,4">
             <ListBox.Styles>
                 <Style Selector="ListBoxItem">
-                   <Setter Property="Padding" Value="8,8"/>
+                   <Setter Property="Padding" Value="10,8"/>
+                </Style>
+                <!-- Zebra Striping (Sort of, Avalonia requires a bit more for true zebra, but we can do hover effects) -->
+                <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                   <Setter Property="Background" Value="#2A2A2A"/>
+                </Style>
+                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                   <Setter Property="Background" Value="#37474F"/>
+                   <Setter Property="TextBlock.Foreground" Value="#FFF"/>
                 </Style>
             </ListBox.Styles>
             <ListBox.ItemTemplate>
@@ -83,124 +276,13 @@
                           PointerMoved="OnPlaylistItemPointerMoved"
                           PointerReleased="OnPlaylistItemPointerReleased">
                         <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1" Text="{Binding Duration}" Opacity="0.7" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Duration}" Opacity="0.7" VerticalAlignment="Center" FontFamily="Consolas"/>
                         <TextBlock Grid.Column="2" Text="{Binding Status}" Opacity="0.7" VerticalAlignment="Center"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-      </DockPanel>
-
-      <!-- Splitter -->
-      <GridSplitter Grid.Column="1" Background="Transparent" ResizeDirection="Columns"/>
-
-      <!-- Sidebar (Right) -->
-      <ScrollViewer Grid.Column="2" Padding="10">
-          <StackPanel Spacing="20">
-
-              <!-- Preview Monitor -->
-              <StackPanel Spacing="5">
-                  <TextBlock Text="PREVIEW MONITOR" FontWeight="Bold" Opacity="0.7" FontSize="24"/>
-                  <Border Background="Black" CornerRadius="4" Height="225" ClipToBounds="True">
-                      <vlc:VideoView Name="PreviewVideoView"/>
-                  </Border>
-
-                  <!-- Preview Controls -->
-                  <StackPanel Spacing="8">
-                      <!-- 1. Transport & Audio -->
-                      <Grid ColumnDefinitions="*, *, *, Auto">
-                          <Button Grid.Column="0" Content="Play" Command="{Binding PlayPreviewCommand}" HorizontalAlignment="Stretch" Margin="0,0,2,0"/>
-                          <Button Grid.Column="1" Content="Pause" Command="{Binding PausePreviewCommand}" HorizontalAlignment="Stretch" Margin="2,0,2,0"/>
-                          <Button Grid.Column="2" Content="Stop" Command="{Binding StopPreviewCommand}" HorizontalAlignment="Stretch" Margin="2,0,2,0"/>
-
-                          <ToggleButton Grid.Column="3" IsChecked="{Binding IsPreviewAudioEnabled}" Margin="5,0,0,0" ToolTip.Tip="Toggle Preview Audio" Padding="10,5">
-                              <TextBlock Text="🔊"/>
-                          </ToggleButton>
-                      </Grid>
-
-                      <!-- 2. Cue Mode -->
-                      <Grid ColumnDefinitions="Auto, *, *, Auto">
-                          <TextBlock Text="Cue:" VerticalAlignment="Center" Margin="0,0,10,0" Opacity="0.7"/>
-                          <RadioButton Grid.Column="1" Content="Next" GroupName="CueMode"
-                                       IsChecked="{Binding IsPreviewCueNext}"/>
-                          <RadioButton Grid.Column="2" Content="Selected" GroupName="CueMode"
-                                       IsChecked="{Binding IsPreviewCueSelected}"/>
-                          <Button Grid.Column="3" Content="Reset" Command="{Binding CueNextPreviewCommand}" ToolTip.Tip="Reload/Reset Preview" Padding="8,4"/>
-                      </Grid>
-
-                      <!-- 3. Status -->
-                      <TextBlock Text="{Binding PreviewStatusText}" TextWrapping="Wrap" Opacity="0.6" FontSize="12" HorizontalAlignment="Center"/>
-                  </StackPanel>
-              </StackPanel>
-
-              <Separator Opacity="0.3"/>
-
-              <!-- Playback Controls (Speed) -->
-              <StackPanel Spacing="5">
-                  <TextBlock Text="PLAYBACK SPEED" FontWeight="Bold" Opacity="0.7" FontSize="24"/>
-                  <Grid ColumnDefinitions="Auto, *, Auto">
-                      <Button Grid.Column="0" Content="-" Command="{Binding DecreaseSpeedCommand}" Width="40" Height="40" Margin="0,0,5,0"/>
-                      <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableSpeeds}"
-                                SelectedItem="{Binding SelectedSpeed, Mode=TwoWay}"
-                                HorizontalAlignment="Stretch"/>
-                      <Button Grid.Column="2" Content="+" Command="{Binding IncreaseSpeedCommand}" Width="40" Height="40" Margin="5,0,0,0"/>
-                  </Grid>
-                  <TextBlock Text="Hotkeys: [ ]" HorizontalAlignment="Center" Opacity="0.5" FontSize="12"/>
-              </StackPanel>
-
-              <Separator Opacity="0.3"/>
-
-              <!-- Panic -->
-              <Border Background="#330000" CornerRadius="6" Padding="15">
-                  <StackPanel Spacing="10">
-                      <TextBlock Text="🚨 PANIC CONTROL" FontWeight="Bold" Foreground="#FF5555" FontSize="24" HorizontalAlignment="Center"/>
-                      <Button Content="{Binding PanicButtonText}"
-                              Command="{Binding PanicCommand}"
-                              Background="{Binding PanicButtonColor}"
-                              Foreground="White"
-                              HorizontalAlignment="Stretch"
-                              FontSize="24"
-                              FontWeight="Bold"
-                              Padding="10"
-                              Height="60"/>
-                      <TextBlock Text="Immediately cuts output to black and pauses playback."
-                                 TextWrapping="Wrap"
-                                 Opacity="0.6"
-                                 TextAlignment="Center"/>
-                  </StackPanel>
-              </Border>
-
-          </StackPanel>
-      </ScrollViewer>
-    </Grid>
-
-    <!-- 3. Transport Bar (Bottom) -->
-    <Border Grid.Row="2" Background="#222" BorderBrush="#333" BorderThickness="0,1,0,0" Padding="10">
-        <Grid ColumnDefinitions="Auto, *, Auto">
-
-            <!-- Left: Status -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="15">
-                 <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold" FontSize="18"/>
-            </StackPanel>
-
-            <!-- Center: Transport Buttons -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
-                <Button Content="Prev" Command="{Binding PlayPrevCommand}" Width="80" Height="40" ToolTip.Tip="Play Previous"/>
-                <Button Content="-10s" Command="{Binding SeekBackCommand}" Width="60" Height="40" ToolTip.Tip="Shift+Left"/>
-                <Button Content="Stop" Command="{Binding StopCommand}" Width="80" Height="40" Background="#442222" ToolTip.Tip="S"/>
-                <Button Content="Play/Pause" Command="{Binding TogglePlayPauseCommand}" Width="150" Height="40" FontWeight="Bold" Background="#224422" ToolTip.Tip="Space"/>
-                <Button Content="+10s" Command="{Binding SeekForwardCommand}" Width="60" Height="40" ToolTip.Tip="Shift+Right"/>
-                <Button Content="Next" Command="{Binding PlayNextCommand}" Width="80" Height="40" ToolTip.Tip="Play Next"/>
-                <Button Content="Step" Command="{Binding FrameStepCommand}" Height="40" ToolTip.Tip="F"/>
-                <ToggleButton Content="Loop" IsChecked="{Binding IsLooping}" Height="40" ToolTip.Tip="Toggle Playlist Loop"/>
-            </StackPanel>
-
-            <!-- Right: Tools -->
-            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                <Button Content="Clear Playlist" Command="{Binding ClearPlaylistCommand}" Height="40"/>
-            </StackPanel>
-        </Grid>
-    </Border>
+    </DockPanel>
 
   </Grid>
 </Window>

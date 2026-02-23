@@ -63,6 +63,7 @@ public partial class ControlWindow : Window, IControlWindow
         // Standard keys (hardcoded for now to preserve existing behavior)
         AddKey("Enter", vm.PlaySelectedCommand);
         AddKey("Delete", vm.RemoveSelectedCommand);
+        AddKey("Escape", vm.ToggleFullscreenCommand);
     }
 
     public void AttachPreviewPlayer(MediaPlayer player)
