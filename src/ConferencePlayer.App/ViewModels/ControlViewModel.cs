@@ -60,6 +60,7 @@ public sealed class ControlViewModel : ObservableObject
     {
         _controlWindow = controlWindow;
         _outputWindow = outputWindow;
+        _outputWindow.DataContext = this;
         _libVLC = libVLC;
         _logger = logger;
         _settings = settings;
@@ -102,6 +103,7 @@ public sealed class ControlViewModel : ObservableObject
         OpenSettingsCommand = new RelayCommand(OpenSettings);
         OpenLogsFolderCommand = new RelayCommand(OpenLogsFolder);
         OpenHelpShortcutsCommand = new RelayCommand(OpenHelpShortcuts);
+        ToggleFullscreenCommand = new RelayCommand(ToggleFullscreen);
         CueNextPreviewCommand = new RelayCommand(CueNextPreview);
 
         PlayPreviewCommand = new RelayCommand(PlayPreview);
@@ -355,6 +357,7 @@ public sealed class ControlViewModel : ObservableObject
     public RelayCommand OpenSettingsCommand { get; }
     public RelayCommand OpenLogsFolderCommand { get; }
     public RelayCommand OpenHelpShortcutsCommand { get; }
+    public RelayCommand ToggleFullscreenCommand { get; }
     public RelayCommand CueNextPreviewCommand { get; }
 
     public RelayCommand PlayPreviewCommand { get; }
@@ -760,6 +763,11 @@ public sealed class ControlViewModel : ObservableObject
     private void SetCueModeSelected()
     {
         IsPreviewCueSelected = true;
+    }
+
+    private void ToggleFullscreen()
+    {
+        _outputWindow.ToggleFullscreen();
     }
 
     private void TogglePanic()

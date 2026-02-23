@@ -37,4 +37,18 @@ public partial class OutputWindow : Window, IOutputWindow
         Width = bounds.Width / screen.Scaling;
         Height = bounds.Height / screen.Scaling;
     }
+
+    public void ToggleFullscreen()
+    {
+        if (WindowState == WindowState.FullScreen)
+        {
+            SystemDecorations = SystemDecorations.Full;
+            WindowState = WindowState.Normal;
+        }
+        else
+        {
+            SystemDecorations = SystemDecorations.None;
+            WindowState = WindowState.FullScreen;
+        }
+    }
 }

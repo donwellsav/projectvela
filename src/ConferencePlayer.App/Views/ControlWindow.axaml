@@ -35,12 +35,19 @@
       <!-- Playlist (Left) -->
       <DockPanel Grid.Column="0" Margin="10,10,0,10">
         <!-- Toolbar -->
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,5">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,5" Spacing="10">
             <Button Command="{Binding AddFilesCommand}" ToolTip.Tip="Browse media files" Height="40">
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <PathIcon Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+                    <PathIcon Data="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z"
                               Width="24" Height="24"/>
-                    <TextBlock Text="Browse" VerticalAlignment="Center"/>
+                    <TextBlock Text="Add Files" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding AddFolderCommand}" ToolTip.Tip="Browse folder" Height="40">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <PathIcon Data="M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,6 20,6Z"
+                              Width="24" Height="24"/>
+                    <TextBlock Text="Add Folder" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
         </StackPanel>

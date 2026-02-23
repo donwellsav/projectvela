@@ -1,7 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ConferencePlayer.ViewModels"
         xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
         x:Class="ConferencePlayer.Views.OutputWindow"
+        x:DataType="vm:ControlViewModel"
         Title="Project Vela - Output"
         Background="Black"
         ShowInTaskbar="False"
@@ -9,7 +11,19 @@
         CanResize="False"
         WindowStartupLocation="Manual">
 
+  <Window.KeyBindings>
+      <KeyBinding Gesture="Escape" Command="{Binding ToggleFullscreenCommand}" />
+  </Window.KeyBindings>
+
   <Grid Background="Black">
+    <Grid.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="Play/Pause" Command="{Binding TogglePlayPauseCommand}"/>
+            <MenuItem Header="Stop" Command="{Binding StopCommand}"/>
+            <Separator/>
+            <MenuItem Header="Exit Fullscreen" Command="{Binding ToggleFullscreenCommand}"/>
+        </ContextMenu>
+    </Grid.ContextMenu>
     <vlc:VideoView Name="VideoView"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"/>

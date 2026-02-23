@@ -61,7 +61,7 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
 
         _currentPath = filePath;
 
-        try
+        TryAction(() =>
         {
             using var media = new Media(_libVlc, filePath, FromType.FromPath);
 
@@ -100,87 +100,43 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
             }
 
             _logger.Info($"Loaded media: {filePath} (autoPlay={autoPlay})");
-        }
-        catch (Exception ex)
-        {
-            _logger.Error($"Failed to load/play media: {filePath}", ex);
-            SetState(PlaybackState.Error);
-            PlaybackError?.Invoke(this, ex.Message);
-        }
+        }, $"Failed to load/play media: {filePath}", isCritical: true);
     }
 
     public void Play()
     {
-        try
-        {
-            MediaPlayer.SetPause(false);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("Play failed", ex);
-            SetState(PlaybackState.Error);
-            PlaybackError?.Invoke(this, ex.Message);
-        }
+        TryAction(() => MediaPlayer.SetPause(false), "Play failed", isCritical: true);
     }
 
     public void Pause()
     {
-        try
-        {
-            MediaPlayer.Pause();
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("Pause failed", ex);
-            SetState(PlaybackState.Error);
-            PlaybackError?.Invoke(this, ex.Message);
-        }
+        TryAction(() => MediaPlayer.Pause(), "Pause failed", isCritical: true);
     }
 
     public void Stop()
     {
-        try
-        {
-            MediaPlayer.Stop();
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("Stop failed", ex);
-            SetState(PlaybackState.Error);
-            PlaybackError?.Invoke(this, ex.Message);
-        }
+        TryAction(() => MediaPlayer.Stop(), "Stop failed", isCritical: true);
     }
 
     public void SetRate(float rate)
     {
-        try
+        TryAction(() =>
         {
             if (rate <= 0)
                 rate = 1.0f;
 
             MediaPlayer.SetRate(rate);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error($"SetRate failed: {rate}", ex);
-        }
+        }, $"SetRate failed: {rate}");
     }
 
     public void NextFrame()
     {
-        try
-        {
-            MediaPlayer.NextFrame();
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("NextFrame failed", ex);
-        }
+        TryAction(() => MediaPlayer.NextFrame(), "NextFrame failed");
     }
 
     public void Seek(TimeSpan time)
     {
-        try
+        TryAction(() =>
         {
             if (time < TimeSpan.Zero) time = TimeSpan.Zero;
             var ms = (long)time.TotalMilliseconds;
@@ -191,16 +147,12 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
                 ms = length;
 
             MediaPlayer.Time = ms;
-        }
-        catch (Exception ex)
-        {
-            _logger.Error($"Seek failed: {time}", ex);
-        }
+        }, $"Seek failed: {time}");
     }
 
     public void SeekRelative(TimeSpan offset)
     {
-        try
+        TryAction(() =>
         {
             var current = MediaPlayer.Time;
             if (current < 0) return; // Not playing or invalid
@@ -213,23 +165,12 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
                 target = length;
 
             MediaPlayer.Time = target;
-        }
-        catch (Exception ex)
-        {
-            _logger.Error($"SeekRelative failed: {offset}", ex);
-        }
+        }, $"SeekRelative failed: {offset}");
     }
 
     public void SetMute(bool mute)
     {
-        try
-        {
-            MediaPlayer.Mute = mute;
-        }
-        catch (Exception ex)
-        {
-            _logger.Error($"SetMute failed: {mute}", ex);
-        }
+        TryAction(() => MediaPlayer.Mute = mute, $"SetMute failed: {mute}");
     }
 
     private void SetState(PlaybackState state)
@@ -239,6 +180,23 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
 
         State = state;
         StateChanged?.Invoke(this, state);
+    }
+
+    private void TryAction(Action action, string errorMessage, bool isCritical = false)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(errorMessage, ex);
+            if (isCritical)
+            {
+                SetState(PlaybackState.Error);
+                PlaybackError?.Invoke(this, ex.Message);
+            }
+        }
     }
 
     public void Dispose()
