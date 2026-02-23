@@ -3,20 +3,21 @@
         x:Class="ConferencePlayer.Views.PromptDialog"
         x:CompileBindings="False"
         Title="Playback Error"
-        Width="640" Height="320"
+        Width="700" Height="350"
+        FontSize="16"
         WindowStartupLocation="CenterOwner"
         CanResize="False">
 
   <DockPanel Margin="16">
 
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
-      <Button Content="Retry" Click="Retry_Click"/>
-      <Button Content="Skip" Click="Skip_Click"/>
-      <Button Content="Stop" Click="Stop_Click"/>
+      <Button Content="Retry" Click="Retry_Click" Height="40" Width="100"/>
+      <Button Content="Skip" Click="Skip_Click" Height="40" Width="100"/>
+      <Button Content="Stop" Click="Stop_Click" Height="40" Width="100"/>
     </StackPanel>
 
     <StackPanel Spacing="10">
-      <TextBlock Text="{Binding Message}" FontWeight="Bold" FontSize="16"/>
+      <TextBlock Text="{Binding Message}" FontWeight="Bold" FontSize="24"/>
       <TextBlock Text="{Binding Details}" Opacity="0.85" TextWrapping="Wrap"/>
       <TextBlock Text="The output is black until you choose an action." Opacity="0.75"/>
     </StackPanel>
