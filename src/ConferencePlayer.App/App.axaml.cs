@@ -74,9 +74,16 @@ public partial class App : Application
                 _logger.Error("Core.Initialize() failed. LibVLC native libs may be missing.", ex);
             }
 
+            // Initialize LibVLC with strict offline and clean-output flags.
             _libVLC = new LibVLC(
-                "--no-video-title-show",
-                "--quiet"
+                "--no-video-title-show",        // No filename overlay on start
+                "--quiet",                      // Reduce log verbosity
+                "--no-osd",                     // No On-Screen Display overlays
+                "--no-snapshot-preview",        // Disable snapshot generation
+                "--no-stats",                   // Disable statistics collection
+                "--no-media-library",           // Disable media library features
+                "--no-metadata-network-access", // Prevent metadata fetching
+                "--ignore-config"               // Ignore system-wide VLC configs for portability
             );
 
             _playback = new LibVlcPlaybackEngine(_libVLC, _logger);

@@ -24,7 +24,7 @@ Two-window model:
 
 ### R1. Playback
 
-- R1.1 Plays local media files (offline, no network).
+- R1.1 Plays local media files (offline, bundled codecs, no network initialization).
 - R1.2 Must be stable: **never crash**. On error: the *Playback State Machine* must immediately transition to an **Error** state, force the output to **black** (via `IOutputController`), log the error, and then prompt the operator for action (Retry/Skip/Stop).
 - R1.3 Transport:
   - Play/Pause
@@ -64,13 +64,15 @@ Two-window model:
 - R4.3 Leaving panic:
   - Default: remain paused until operator presses Play.
   - Option: auto-resume if it was playing before panic (toggle in settings).
+- R4.4 Output window must remain clean (no overlays).
 
 ### R5. Packaging & distribution
 
 - R5.1 x64 only.
 - R5.2 Per-user installer (no admin).
-- R5.3 Fully offline operation (installer should not require network).
+- R5.3 Fully offline operation (installer and runtime). No update checks.
 - R5.4 Commercial distribution must include a licensing compliance plan (LibVLC/LibVLCSharp is LGPL).
+- R5.5 Manual updates only: do NOT implement update checks/notifications/calls.
 
 ## Acceptance (MVP)
 
