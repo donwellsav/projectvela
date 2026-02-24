@@ -503,7 +503,7 @@ public sealed class ControlViewModel : ObservableObject
         }
     }
 
-    private void LoadPlaylistIfEnabled()
+    private async void LoadPlaylistIfEnabled()
     {
         if (!_settings.PersistPlaylist)
             return;
@@ -524,7 +524,7 @@ public sealed class ControlViewModel : ObservableObject
             if (SelectedItem != null && state.PositionSeconds > 0)
             {
                 // Load paused
-                _playback.Load(SelectedItem.FilePath, autoPlay: false);
+                await _playback.LoadAsync(SelectedItem.FilePath, autoPlay: false);
                 // Seek
                 var timeMs = (long)(state.PositionSeconds * 1000);
                 _playback.MediaPlayer.Time = timeMs;
@@ -607,13 +607,13 @@ public sealed class ControlViewModel : ObservableObject
         SavePlaylistIfEnabled();
     }
 
-    private void PlaySelected()
+    private async void PlaySelected()
     {
         if (SelectedItem == null)
             return;
 
         // Exceptions handled inside StateMachine.Load -> OnEngineError
-        _playback.Load(SelectedItem.FilePath, autoPlay: true);
+        await _playback.LoadAsync(SelectedItem.FilePath, autoPlay: true);
 
         // Re-apply speed preference
         _playback.SetRate(SelectedSpeed);
@@ -769,7 +769,7 @@ public sealed class ControlViewModel : ObservableObject
         }
     }
 
-    private void CueNextPreview()
+    private async void CueNextPreview()
     {
         UpdateNextItemText();
 
@@ -789,7 +789,7 @@ public sealed class ControlViewModel : ObservableObject
             // Only reload if we are not already playing/loaded the correct file?
             // For simplicity in v1 cueing: always reload to ensure fresh start (paused on frame 0).
             _previewPlayback.SetMute(!_settings.PreviewAudioEnabled);
-            _previewPlayback.Load(next.FilePath, autoPlay: false);
+            await _previewPlayback.LoadAsync(next.FilePath, autoPlay: false);
 
             var mode = _settings.PreviewCuesSelectedItem ? "Selected" : "Next";
             PreviewStatusText = $"Preview ({mode}): {next.Name}";
