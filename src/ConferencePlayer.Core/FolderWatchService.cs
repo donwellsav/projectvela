@@ -222,6 +222,10 @@ public sealed class FolderWatchService : IDisposable
             {
                 _logger.Error($"FolderWatchService background handler failed for '{path}'", ex);
             }
+            finally
+            {
+                _seen.TryRemove(path, out _);
+            }
         });
     }
 
