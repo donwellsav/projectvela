@@ -31,7 +31,7 @@ public class PlaybackStateMachineSequenceTests
         public event EventHandler<string>? PlaybackError;
         public event EventHandler<PlaybackState>? StateChanged;
 
-        public void Load(string filePath, bool autoPlay) { }
+        public Task LoadAsync(string filePath, bool autoPlay) => Task.CompletedTask;
         public void Play()
         {
             CallLog.Add("Engine.Play");

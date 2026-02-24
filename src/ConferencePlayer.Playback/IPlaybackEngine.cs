@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using LibVLCSharp.Shared;
 
 namespace ConferencePlayer.Playback;
@@ -19,7 +20,7 @@ public interface IPlaybackEngine : IDisposable
     event EventHandler<string>? PlaybackError;
     event EventHandler<PlaybackState>? StateChanged;
 
-    void Load(string filePath, bool autoPlay);
+    Task LoadAsync(string filePath, bool autoPlay);
     void Play();
     void Pause();
     void Stop();

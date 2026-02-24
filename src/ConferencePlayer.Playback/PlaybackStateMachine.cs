@@ -53,7 +53,7 @@ public sealed class PlaybackStateMachine : IDisposable
     public event EventHandler<string>? ErrorOccurred;
     public event EventHandler? SkipRequested;
 
-    public void Load(string filePath, bool autoPlay)
+    public async Task LoadAsync(string filePath, bool autoPlay)
     {
         _currentPath = filePath;
         if (_isPanic) ExitPanic();
@@ -61,7 +61,7 @@ public sealed class PlaybackStateMachine : IDisposable
 
         try
         {
-            _engine.Load(filePath, autoPlay);
+            await _engine.LoadAsync(filePath, autoPlay);
         }
         catch (Exception ex)
         {
@@ -221,7 +221,7 @@ public sealed class PlaybackStateMachine : IDisposable
             case UserChoice.Retry:
                 if (!string.IsNullOrEmpty(_currentPath))
                 {
-                    Load(_currentPath!, true);
+                    await LoadAsync(_currentPath!, true);
                 }
                 break;
             case UserChoice.Skip:

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using ConferencePlayer.Core;
 using LibVLCSharp.Shared;
 
@@ -51,56 +52,60 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
         MediaPlayer.Stopped += (_, __) => SetState(PlaybackState.Stopped);
     }
 
-    public void Load(string filePath, bool autoPlay)
+    public async Task LoadAsync(string filePath, bool autoPlay)
     {
         if (string.IsNullOrWhiteSpace(filePath))
             throw new ArgumentException("filePath is required.", nameof(filePath));
 
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException("Media file not found.", filePath);
-
         _currentPath = filePath;
 
-        TryAction(() =>
+        // Perform I/O-heavy initialization in a background task
+        await Task.Run(() =>
         {
-            using var media = new Media(_libVlc, filePath, FromType.FromPath);
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException("Media file not found.", filePath);
 
-            if (!autoPlay)
+            TryAction(() =>
             {
-                // "Mute & Flag" strategy for seamless preview loading:
-                // 1. Force mute (safety against audio blips).
-                // 2. Use :start-paused option (primary mechanism).
-                // 3. Restore original mute state once strictly paused.
-                var originalMute = MediaPlayer.Mute;
-                MediaPlayer.Mute = true;
-                media.AddOption(":start-paused");
+                using var media = new Media(_libVlc, filePath, FromType.FromPath);
 
-                // Restore mute on first Pause event (or Error)
-                void RestoreMuteHandler(object? sender, EventArgs e)
+                if (!autoPlay)
                 {
-                    MediaPlayer.Paused -= RestoreMuteHandler;
-                    MediaPlayer.EncounteredError -= RestoreMuteHandler;
-                    try
+                    // "Mute & Flag" strategy for seamless preview loading:
+                    // 1. Force mute (safety against audio blips).
+                    // 2. Use :start-paused option (primary mechanism).
+                    // 3. Restore original mute state once strictly paused.
+                    var originalMute = MediaPlayer.Mute;
+                    MediaPlayer.Mute = true;
+                    media.AddOption(":start-paused");
+
+                    // Restore mute on first Pause event (or Error)
+                    void RestoreMuteHandler(object? sender, EventArgs e)
                     {
-                        MediaPlayer.Mute = originalMute;
+                        MediaPlayer.Paused -= RestoreMuteHandler;
+                        MediaPlayer.EncounteredError -= RestoreMuteHandler;
+                        try
+                        {
+                            MediaPlayer.Mute = originalMute;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.Error("Failed to restore mute state after load", ex);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.Error("Failed to restore mute state after load", ex);
-                    }
+
+                    MediaPlayer.Paused += RestoreMuteHandler;
+                    MediaPlayer.EncounteredError += RestoreMuteHandler;
+                    MediaPlayer.Play(media);
+                }
+                else
+                {
+                    MediaPlayer.Play(media);
                 }
 
-                MediaPlayer.Paused += RestoreMuteHandler;
-                MediaPlayer.EncounteredError += RestoreMuteHandler;
-                MediaPlayer.Play(media);
-            }
-            else
-            {
-                MediaPlayer.Play(media);
-            }
-
-            _logger.Info($"Loaded media: {filePath} (autoPlay={autoPlay})");
-        }, $"Failed to load/play media: {filePath}", isCritical: true);
+                _logger.Info($"Loaded media: {filePath} (autoPlay={autoPlay})");
+            }, $"Failed to load/play media: {filePath}", isCritical: true);
+        });
     }
 
     public void Play()

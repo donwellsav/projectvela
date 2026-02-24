@@ -121,7 +121,7 @@ public class ControlViewModelTests
 
         // Assert
         // Expect loading the NEXT item (file2) with autoPlay: false
-        _mockPreviewEngine.Verify(x => x.Load(file2, false), Times.AtLeastOnce);
+        _mockPreviewEngine.Verify(x => x.LoadAsync(file2, false), Times.AtLeastOnce);
 
         // Expect Mute to be TRUE (since PreviewAudioEnabled is false)
         _mockPreviewEngine.Verify(x => x.SetMute(true), Times.AtLeastOnce);
@@ -146,7 +146,7 @@ public class ControlViewModelTests
 
         // Assert
         // Expect loading the SELECTED item (file1)
-        _mockPreviewEngine.Verify(x => x.Load(file1, false), Times.AtLeastOnce);
+        _mockPreviewEngine.Verify(x => x.LoadAsync(file1, false), Times.AtLeastOnce);
     }
 
     [Fact]

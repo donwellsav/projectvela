@@ -29,7 +29,7 @@ public class PlaybackStateMachineTests
         public TimeSpan LastSeekTime { get; private set; }
         public TimeSpan LastSeekRelativeOffset { get; private set; }
 
-        public void Load(string filePath, bool autoPlay)
+        public Task LoadAsync(string filePath, bool autoPlay)
         {
             if (filePath == "error") throw new ArgumentException("Simulated error");
             if (autoPlay)
@@ -42,6 +42,7 @@ public class PlaybackStateMachineTests
                 State = PlaybackState.Paused;
                 StateChanged?.Invoke(this, State);
             }
+            return Task.CompletedTask;
         }
 
         public void Play()
@@ -108,7 +109,7 @@ public class PlaybackStateMachineTests
         var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), settings);
 
         // Start playing
-        sm.Load("test.mp4", true);
+        sm.LoadAsync("test.mp4", true).Wait();
         Assert.Equal(PlaybackState.Playing, sm.State);
 
         // Enter Panic
@@ -133,7 +134,7 @@ public class PlaybackStateMachineTests
         };
         var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), settings);
 
-        sm.Load("test.mp4", true);
+        sm.LoadAsync("test.mp4", true).Wait();
         Assert.False(engine.IsMuted);
 
         sm.TogglePanic();
@@ -172,7 +173,7 @@ public class PlaybackStateMachineTests
         var settings = new AppSettings { ResumePlaybackAfterPanic = true };
         var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), settings);
 
-        sm.Load("test.mp4", true); // Playing
+        sm.LoadAsync("test.mp4", true).Wait(); // Playing
         Assert.Equal(PlaybackState.Playing, engine.State);
 
         sm.TogglePanic();
@@ -191,7 +192,7 @@ public class PlaybackStateMachineTests
         var settings = new AppSettings { ResumePlaybackAfterPanic = true };
         var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), settings);
 
-        sm.Load("test.mp4", false); // Paused
+        sm.LoadAsync("test.mp4", false).Wait(); // Paused
         Assert.Equal(PlaybackState.Paused, engine.State);
 
         sm.TogglePanic();
@@ -211,7 +212,7 @@ public class PlaybackStateMachineTests
         sm.TogglePanic();
         Assert.True(sm.IsPanic);
 
-        sm.Load("newfile.mp4", true);
+        sm.LoadAsync("newfile.mp4", true).Wait();
 
         Assert.False(sm.IsPanic);
         Assert.False(output.IsBlackout);
@@ -245,7 +246,7 @@ public class PlaybackStateMachineTests
         var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
 
         // Initial load
-        sm.Load("test.mp4", true);
+        sm.LoadAsync("test.mp4", true).Wait();
         Assert.Equal(PlaybackState.Playing, engine.State);
 
         bool errorReported = false;
@@ -301,7 +302,7 @@ public class PlaybackStateMachineTests
         var sm = new PlaybackStateMachine(engine, output, prompts, new AppLogger("logs"), new AppSettings());
 
         // Initial load to have a state
-        sm.Load("test.mp4", true);
+        await sm.LoadAsync("test.mp4", true);
         Assert.Equal(PlaybackState.Playing, engine.State);
 
         // Simulate engine error which triggers OnEngineError
