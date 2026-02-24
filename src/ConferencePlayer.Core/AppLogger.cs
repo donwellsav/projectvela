@@ -10,6 +10,9 @@ namespace ConferencePlayer.Core;
 /// </summary>
 public sealed class AppLogger
 {
+    private static readonly string? _cachedUser = GetSafeEnvironmentVariable(() => Environment.UserName);
+    private static readonly string? _cachedMachine = GetSafeEnvironmentVariable(() => Environment.MachineName);
+
     private readonly object _gate = new();
     private readonly string _logFilePath;
 
@@ -97,6 +100,19 @@ public sealed class AppLogger
         }
     }
 
+    private static string? GetSafeEnvironmentVariable(Func<string> getter)
+    {
+        try
+        {
+            var value = getter();
+            return (!string.IsNullOrWhiteSpace(value) && value.Length > 1) ? value : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private string Sanitize(string input)
     {
         if (string.IsNullOrWhiteSpace(input)) return input;
@@ -105,22 +121,20 @@ public sealed class AppLogger
         try
         {
             // Mask the current user's name in paths to avoid PII exposure
-            var user = Environment.UserName;
-            if (!string.IsNullOrWhiteSpace(user) && user.Length > 1)
+            if (_cachedUser != null)
             {
-                result = result.Replace(user, "[USER]", StringComparison.OrdinalIgnoreCase);
+                result = result.Replace(_cachedUser, "[USER]", StringComparison.OrdinalIgnoreCase);
             }
 
             // Mask machine name as it's often considered environment-sensitive info
-            var machine = Environment.MachineName;
-            if (!string.IsNullOrWhiteSpace(machine) && machine.Length > 1)
+            if (_cachedMachine != null)
             {
-                result = result.Replace(machine, "[MACHINE]", StringComparison.OrdinalIgnoreCase);
+                result = result.Replace(_cachedMachine, "[MACHINE]", StringComparison.OrdinalIgnoreCase);
             }
         }
         catch
         {
-            // Defensive: if environment access fails, return original input to ensure we still log something.
+            // Defensive: if anything fails, return original input to ensure we still log something.
         }
 
         return result;
