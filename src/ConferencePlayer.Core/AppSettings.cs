@@ -117,7 +117,8 @@ public sealed class AppSettings
 
     private static readonly string[] DangerousExtensions = new[]
     {
-        ".exe", ".dll", ".bat", ".cmd", ".ps1", ".vbs", ".js", ".jar", ".msi", ".com", ".scr"
+        ".exe", ".dll", ".bat", ".cmd", ".ps1", ".vbs", ".js", ".jar", ".msi", ".com", ".scr",
+        ".sh", ".command", ".run"
     };
 
     /// <summary>

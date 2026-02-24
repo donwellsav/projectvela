@@ -13,6 +13,9 @@ public class AppSettingsSecurityTests
         settings.AllowedExtensions.Add(".exe");
         settings.AllowedExtensions.Add(".bat");
         settings.AllowedExtensions.Add(".dll");
+        settings.AllowedExtensions.Add(".sh");
+        settings.AllowedExtensions.Add(".command");
+        settings.AllowedExtensions.Add(".run");
         settings.AllowedExtensions.Add(".mp4"); // Should remain
 
         // Act
@@ -22,6 +25,9 @@ public class AppSettingsSecurityTests
         Assert.DoesNotContain(".exe", settings.AllowedExtensions);
         Assert.DoesNotContain(".bat", settings.AllowedExtensions);
         Assert.DoesNotContain(".dll", settings.AllowedExtensions);
+        Assert.DoesNotContain(".sh", settings.AllowedExtensions);
+        Assert.DoesNotContain(".command", settings.AllowedExtensions);
+        Assert.DoesNotContain(".run", settings.AllowedExtensions);
         Assert.Contains(".mp4", settings.AllowedExtensions);
     }
 
