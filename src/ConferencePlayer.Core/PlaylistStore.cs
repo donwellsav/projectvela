@@ -134,9 +134,6 @@ public sealed class PlaylistStore
             // Use async stream to avoid blocking UI thread during large playlist serialization
             await using var stream = new FileStream(_playlistFilePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
             await JsonSerializer.SerializeAsync(stream, state, _jsonOptions);
-
-            // Logging every save might be too verbose if we save on pause/stop often.
-            // logger.Info($"Playlist saved: {state.Items.Count} items");
         }
         catch (Exception ex)
         {
