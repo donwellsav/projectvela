@@ -210,9 +210,9 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
         {
             MediaPlayer.Dispose();
         }
-        catch
+        catch (Exception ex)
         {
-            // ignore
+            _logger.Error("Failed to dispose MediaPlayer", ex);
         }
     }
 }
