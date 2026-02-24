@@ -41,7 +41,7 @@ public sealed class ControlViewModel : ObservableObject
     // We bind IsPanic to UI, but source of truth is StateMachine
     private bool _isPanic;
     private string _panicButtonText = "BLACKOUT (F12)";
-    private string _panicButtonColor = "#AA0000";
+    private string _panicButtonColor = ThemeColors.PanicInactive;
 
     private float _selectedSpeed = 1.0f;
 
@@ -325,7 +325,7 @@ public sealed class ControlViewModel : ObservableObject
             if (Set(ref _isPanic, value))
             {
                 PanicButtonText = _isPanic ? "RESUME (F12)" : "BLACKOUT (F12)";
-                PanicButtonColor = _isPanic ? "#00AA00" : "#AA0000";
+                PanicButtonColor = _isPanic ? ThemeColors.PanicActive : ThemeColors.PanicInactive;
             }
         }
     }
